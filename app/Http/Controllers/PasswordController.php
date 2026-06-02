@@ -2,19 +2,23 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
 use App\Models\Task;
+use App\Models\User;
 use App\Support\ActorSession;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class PasswordController extends Controller
 {
     public function showChangeForm()
     {
         $totalTasks = Task::count();
+        $mustChangePassword = false;
 
-        return view('settings.password', compact('totalTasks'));
+        if (ActorSession::isEmployee()) {
+            $mustChangePassword = (bool) User::where('name', ActorSession::name())->value('must_change_password');
+        }
+
+        return view('settings.password', compact('totalTasks', 'mustChangePassword'));
     }
 
     public function updatePassword(Request $request)
@@ -29,29 +33,23 @@ class PasswordController extends Controller
             return redirect()->route('login');
         }
 
-        $defaultPasswords = [
-            'Infra Director' => 'director123',
-            'Project Manager' => 'manager123',
-        ];
+        $user = User::where('name', $activeActor)->first();
 
-        $defaultPassword = $defaultPasswords[$activeActor] ?? 'employee123';
+        if (!$user) {
+            return back()->withErrors(['current_password' => 'Account not found. Contact your director.']);
+        }
 
-        $user = User::firstOrCreate(
-            ['name' => $activeActor],
-            [
-                'email' => strtolower(str_replace(' ', '', $activeActor)).'@example.com',
-                'password' => Hash::make($defaultPassword),
-            ]
-        );
-
-        if (!Hash::check($request->current_password, $user->password)) {
-            return back()->withErrors(['current_password' => 'The provided password does not match our records.']);
+        if (!\Illuminate\Support\Facades\Hash::check($request->current_password, $user->password)) {
+            return back()->withErrors(['current_password' => 'The current password is incorrect.']);
         }
 
         $user->update([
-            'password' => Hash::make($request->new_password),
+            'password' => $request->new_password,
+            'must_change_password' => false,
         ]);
 
-        return redirect()->back()->with('success', 'Password updated successfully.');
+        return redirect()
+            ->route('dashboard')
+            ->with('success', 'Password updated successfully.');
     }
 }

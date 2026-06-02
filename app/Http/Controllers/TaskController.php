@@ -277,13 +277,26 @@ class TaskController extends Controller
         $role = ActorSession::loginRoleForActor($actor);
         $defaultPassword = $defaultPasswords[$actor] ?? 'employee123';
 
-        $user = \App\Models\User::firstOrCreate(
-            ['name' => $actor],
-            [
-                'email' => strtolower(str_replace(' ', '', $actor)).'@example.com',
-                'password' => \Illuminate\Support\Facades\Hash::make($defaultPassword),
-            ]
-        );
+        if (in_array($actor, ['Infra Director', 'Project Manager'], true)) {
+            $user = \App\Models\User::firstOrCreate(
+                ['name' => $actor],
+                [
+                    'email' => strtolower(str_replace(' ', '', $actor)).'@infratracker.local',
+                    'password' => $defaultPassword,
+                    'must_change_password' => false,
+                ]
+            );
+        } else {
+            $user = \App\Models\User::where('name', $actor)->first();
+
+            if (!$user) {
+                return back()->withErrors([
+                    'actor' => Employee::isEmployeeName($actor)
+                        ? 'No login account for this employee. Ask the Director to add you with a password.'
+                        : 'Account not found.',
+                ])->withInput($request->except('password'));
+            }
+        }
 
         if (!\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
             return back()->withErrors(['password' => 'Invalid credentials. Please try again.'])->withInput($request->except('password'));

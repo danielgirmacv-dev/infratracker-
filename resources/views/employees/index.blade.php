@@ -32,7 +32,7 @@
     <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
             <h1 class="page-title">Employees</h1>
-            <p class="page-subtitle">Add team members who can log in and work on assigned tasks. Default password: <code class="text-xs bg-slate-100 dark:bg-white/10 px-1 rounded">employee123</code></p>
+            <p class="page-subtitle">Add team members with a login password. They must change it after their first sign-in.</p>
         </div>
     </div>
 
@@ -49,6 +49,19 @@
                             placeholder="e.g. FEVEN"
                             class="form-input uppercase @error('name') error @enderror">
                         <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Stored in uppercase. Used at login and for task assignment.</p>
+                    </div>
+                    <div>
+                        <label for="password" class="form-label">Initial password <span class="text-red-600">*</span></label>
+                        <input id="password" type="password" name="password" required minlength="4"
+                            class="form-input @error('password') error @enderror">
+                        @error('password')
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
+                        <label for="password_confirmation" class="form-label">Confirm password <span class="text-red-600">*</span></label>
+                        <input id="password_confirmation" type="password" name="password_confirmation" required minlength="4"
+                            class="form-input">
                     </div>
                     <button type="submit" class="btn-primary w-full justify-center">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" /></svg>
@@ -80,7 +93,17 @@
                                 <tr>
                                     <td class="font-mono text-xs text-slate-400">{{ $idx + 1 }}</td>
                                     <td class="font-bold text-slate-800 dark:text-slate-200">{{ $employee->name }}</td>
-                                    <td class="text-xs text-slate-500 dark:text-slate-400">Select “{{ $employee->name }}” on login</td>
+                                    <td class="text-xs text-slate-500 dark:text-slate-400">
+                                        @if(isset($usersByName[$employee->name]))
+                                            @if($usersByName[$employee->name]->must_change_password)
+                                                <span class="text-amber-600 dark:text-amber-400">Awaiting password change</span>
+                                            @else
+                                                <span class="text-emerald-600 dark:text-emerald-400">Active</span>
+                                            @endif
+                                        @else
+                                            <span class="text-red-600 dark:text-red-400">No login</span>
+                                        @endif
+                                    </td>
                                     <td class="text-xs text-slate-500 dark:text-slate-400">{{ $employee->created_at->format('d M Y') }}</td>
                                     <td class="text-right">
                                         @if($employee->name !== 'FEVEN' || $employees->count() > 1)

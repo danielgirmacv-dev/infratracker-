@@ -7,7 +7,6 @@ use App\Models\Task;
 use App\Models\User;
 use App\Support\ActorSession;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class EmployeeController extends Controller
 {
@@ -16,9 +15,10 @@ class EmployeeController extends Controller
         $this->ensureDirector();
 
         $employees = Employee::orderBy('name')->get();
+        $usersByName = User::whereIn('name', $employees->pluck('name'))->get()->keyBy('name');
         $totalTasks = Task::count();
 
-        return view('employees.index', compact('employees', 'totalTasks'));
+        return view('employees.index', compact('employees', 'usersByName', 'totalTasks'));
     }
 
     public function store(Request $request)
@@ -27,6 +27,7 @@ class EmployeeController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
+            'password' => 'required|string|min:4|confirmed',
         ]);
 
         $name = Employee::normalizeName($request->name);
@@ -41,15 +42,19 @@ class EmployeeController extends Controller
 
         Employee::create(['name' => $name]);
 
-        User::firstOrCreate(
+        User::updateOrCreate(
             ['name' => $name],
             [
-                'email' => strtolower(str_replace(' ', '', $name)).'@example.com',
-                'password' => Hash::make('employee123'),
+                'email' => strtolower(str_replace(' ', '', $name)).'@infratracker.local',
+                'password' => $request->password,
+                'must_change_password' => true,
             ]
         );
 
-        return redirect()->back()->with('success', "Employee {$name} added. Default password: employee123");
+        return redirect()->back()->with(
+            'success',
+            "Employee {$name} added with login enabled. Share the password you set — they must change it after first login."
+        );
     }
 
     public function destroy(Employee $employee)

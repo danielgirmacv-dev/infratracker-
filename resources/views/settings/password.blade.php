@@ -20,6 +20,13 @@
     </div>
     @endif
 
+    @if(session('warning') || !empty($mustChangePassword))
+    <div class="flex items-center gap-3 rounded-lg border border-amber-500/20 bg-amber-100 dark:bg-amber-500/10 px-4 py-3 text-sm font-medium text-amber-800 dark:text-amber-200">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" /></svg>
+        {{ session('warning', 'You must set a new password before using the app.') }}
+    </div>
+    @endif
+
     <div class="card p-6 border border-slate-200 dark:border-white/5 bg-white dark:bg-white/[0.02]">
         <div class="flex items-center gap-3 mb-6">
             <div class="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100 dark:bg-indigo-500/20 text-indigo-650 dark:text-indigo-400">
@@ -27,7 +34,13 @@
             </div>
             <div>
                 <h2 class="text-base font-bold text-slate-800 dark:text-slate-200">Change Password</h2>
-                <p class="text-xs text-slate-500 dark:text-slate-400">Update your account password for security.</p>
+                <p class="text-xs text-slate-500 dark:text-slate-400">
+                    @if(!empty($mustChangePassword))
+                        Enter the password your director gave you, then choose a new one.
+                    @else
+                        Update your account password for security.
+                    @endif
+                </p>
             </div>
         </div>
 
