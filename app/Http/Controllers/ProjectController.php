@@ -10,9 +10,14 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $projects = Project::orderBy('name')->get();
+        $projects = Project::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->string('search').'%');
+            })
+            ->orderBy('name')
+            ->get();
         $totalTasks = Task::count();
         return view('projects.index', compact('projects', 'totalTasks'));
     }

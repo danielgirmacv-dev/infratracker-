@@ -9,12 +9,17 @@
     <style>
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, sans-serif;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #024856; /* Exact dark teal from the logo background */
+            background: #061018;
+            background-image:
+                radial-gradient(ellipse 100% 80% at 50% -30%, rgba(28, 180, 201, 0.18), transparent),
+                linear-gradient(rgba(28, 180, 201, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(28, 180, 201, 0.03) 1px, transparent 1px);
+            background-size: auto, 48px 48px, 48px 48px;
             padding: 1rem;
             overflow: hidden;
         }
@@ -25,15 +30,44 @@
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         .login-container {
-            width: 100%; max-width: 480px;
-            background: rgba(0,0,0,.25);
-            backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(255,255,255,.08);
-            border-radius: 24px;
-            padding: 2.5rem 2rem;
-            box-shadow: 0 25px 60px rgba(0,0,0,.5);
-            animation: slideUp .6s ease-out;
+            width: 100%; max-width: 440px;
+            background: rgba(12, 30, 46, 0.75);
+            backdrop-filter: blur(20px) saturate(160%);
+            -webkit-backdrop-filter: blur(20px) saturate(160%);
+            border: 1px solid rgba(28, 180, 201, 0.2);
+            border-radius: 1.25rem;
+            padding: 2.25rem 2rem;
+            box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 24px 64px rgba(0,0,0,.45), 0 0 80px rgba(28,180,201,.08);
+            animation: slideUp .6s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative; z-index: 1;
+        }
+        .login-container::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(135deg, rgba(28,180,201,.35), transparent 50%);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .enterprise-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: .35rem;
+            margin-bottom: 1rem;
+            padding: .35rem .75rem;
+            border-radius: 999px;
+            font-size: .65rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            text-transform: uppercase;
+            color: #67e8f9;
+            background: rgba(28, 180, 201, 0.12);
+            border: 1px solid rgba(28, 180, 201, 0.25);
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
@@ -132,6 +166,12 @@
     <div class="orb orb-2"></div>
 
     <div class="login-container">
+        <div class="text-center">
+            <span class="enterprise-badge">
+                <svg width="12" height="12" fill="currentColor" viewBox="0 0 24 24"><path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/></svg>
+                Secure enterprise access
+            </span>
+        </div>
         <div class="logo">
             <div style="display: flex; align-items: center; justify-content: center; gap: 14px; margin-bottom: 0.5rem;">
                 <svg width="40" height="48" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">

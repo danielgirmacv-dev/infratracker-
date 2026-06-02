@@ -39,8 +39,8 @@
                     <p class="mt-2 text-3xl font-bold tracking-tight text-slate-900 dark:text-slate-100">{{ $total }}</p>
                     <p class="mt-1 text-xs text-slate-400 dark:text-slate-600">All active projects</p>
                 </div>
-                <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-indigo-100 dark:bg-indigo-500/10">
-                    <svg class="h-5 w-5 text-indigo-600 dark:text-indigo-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
+                <div class="stat-card-icon">
+                    <svg class="h-5 w-5 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25Z" /></svg>
                 </div>
             </div>
         </div>
@@ -124,8 +124,8 @@
         <div class="lg:col-span-2 space-y-6">
             @if($recentTasks->isNotEmpty())
                 <div class="card overflow-hidden">
-                    <div class="flex items-center justify-between border-b border-slate-200 dark:border-white/5 px-6 py-4">
-                        <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Recent Tasks</h2>
+                    <div class="panel-header">
+                        <h2 class="panel-title">Recent Tasks</h2>
                         <a href="{{ route('tasks.index') }}" class="text-xs font-medium text-indigo-600 dark:text-indigo-400 hover:text-indigo-600 dark:text-indigo-300 transition-colors">View all →</a>
                     </div>
                     <div class="divide-y divide-slate-100 dark:divide-white/[0.04]">
@@ -177,9 +177,9 @@
         <div>
             {{-- Activity Feed --}}
             <div class="card overflow-hidden">
-                <div class="flex items-center justify-between border-b border-slate-200 dark:border-white/5 px-6 py-4">
-                    <h2 class="text-sm font-semibold text-slate-700 dark:text-slate-300">Activity Feed</h2>
-                    <span class="badge bg-indigo-100 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-400 ring-1 ring-inset ring-indigo-500/20">{{ $activityFeed->total() }} total</span>
+                <div class="panel-header">
+                    <h2 class="panel-title">Activity Feed</h2>
+                    <span class="badge bg-brand-500/10 text-brand-700 dark:text-brand-400 ring-1 ring-inset ring-brand-500/25">{{ $activityFeed->total() }} total</span>
                 </div>
                 <div class="divide-y divide-slate-100 dark:divide-white/[0.04] p-4">
                     @forelse($activityFeed as $feed)

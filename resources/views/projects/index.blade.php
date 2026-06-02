@@ -25,6 +25,13 @@
     </div>
     @endif
 
+    @if(request()->filled('search'))
+        <div class="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-brand-500/20 bg-brand-500/5 px-4 py-3 text-sm">
+            <span class="text-slate-600 dark:text-slate-400">Filtered by: <strong class="text-slate-800 dark:text-slate-200">{{ request('search') }}</strong></span>
+            <a href="{{ route('projects.index') }}" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Clear filter</a>
+        </div>
+    @endif
+
     <div class="flex flex-col gap-6 lg:flex-row">
         {{-- Left Form Panel --}}
         <div class="w-full lg:w-1/3 space-y-6">

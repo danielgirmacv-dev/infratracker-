@@ -338,7 +338,13 @@ class TaskController extends Controller
             $query->where(function (Builder $q) use ($term): void {
                 $q->where('project_name', 'like', $term)
                     ->orWhere('task_description', 'like', $term)
-                    ->orWhere('task_given_to', 'like', $term);
+                    ->orWhere('supplier_name', 'like', $term)
+                    ->orWhere('task_given_to', 'like', $term)
+                    ->orWhere('task_given_by', 'like', $term)
+                    ->orWhere('responsible_department', 'like', $term)
+                    ->orWhere('next_action', 'like', $term)
+                    ->orWhere('remark', 'like', $term)
+                    ->orWhere('status', 'like', $term);
             });
         }
 

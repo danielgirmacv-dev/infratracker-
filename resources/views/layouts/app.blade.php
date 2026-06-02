@@ -7,7 +7,7 @@
     <meta name="description" content="InfraTracker — Infrastructure project task management system">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script>
         (() => {
             const storedTheme = localStorage.getItem('theme');
@@ -51,9 +51,9 @@
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
     >
         {{-- Logo --}}
-        <div class="flex h-16 items-center gap-3 border-b border-slate-200 dark:border-white/5 px-5">
-            <div class="flex h-8 w-8 items-center justify-center">
-                <svg width="24" height="28" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <div class="sidebar-brand flex h-[68px] items-center gap-3 px-5">
+            <div class="flex h-10 w-10 items-center justify-center rounded-xl bg-white/5 ring-1 ring-white/10">
+                <svg width="22" height="26" viewBox="0 0 40 48" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                     <rect x="14" y="0" width="12" height="48" fill="#1cb4c9"/>
                     <rect x="20" y="0" width="20" height="8" rx="2.5" fill="#1cb4c9"/>
                     <rect x="0" y="8" width="20" height="8" rx="2.5" fill="#1cb4c9"/>
@@ -63,15 +63,15 @@
                     <rect x="0" y="40" width="20" height="8" rx="2.5" fill="#1cb4c9"/>
                 </svg>
             </div>
-            <div>
-                <p class="text-sm font-bold leading-none sidebar-logo"><span class="text-[#1cb4c9]">EEC</span> InfraTracker</p>
-                <p class="mt-0.5 text-[10px] text-slate-400 dark:text-slate-500 leading-none">Task Management</p>
+            <div class="min-w-0">
+                <p class="sidebar-logo-text text-sm leading-tight truncate"><span class="sidebar-logo-accent">EEC</span> InfraTracker</p>
+                <p class="sidebar-tagline mt-1">Enterprise PM</p>
             </div>
         </div>
 
         {{-- Navigation --}}
-        <nav class="flex flex-col gap-0.5 p-3 flex-1 overflow-y-auto scrollbar-none">
-            <p class="px-3 py-2 text-[10px] font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600">Menu</p>
+        <nav class="flex flex-col gap-1 p-3 flex-1 overflow-y-auto scrollbar-none">
+            <p class="nav-section-label">Overview</p>
 
             @php
                 $dashboardActive = request()->is('/');
@@ -97,11 +97,11 @@
                 </svg>
                 Tasks
                 @if(isset($totalTasks) && $totalTasks > 0)
-                    <span class="ml-auto rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400">
-                        {{ $totalTasks }}
-                    </span>
+                    <span class="nav-badge">{{ $totalTasks }}</span>
                 @endif
             </a>
+
+            <p class="nav-section-label mt-3">Master data</p>
 
             {{-- Projects --}}
             <a href="{{ route('projects.index') }}" class="nav-item {{ $projectsActive ? 'active' : '' }}">
@@ -118,6 +118,8 @@
                 </svg>
                 Add Supplier Name
             </a>
+
+            <p class="nav-section-label mt-3">System</p>
 
             {{-- Change Password --}}
             <a href="{{ route('settings.password') }}" class="nav-item {{ $settingsActive ? 'active' : '' }}">
@@ -137,16 +139,16 @@
         </nav>
 
         {{-- Footer --}}
-        <div class="border-t border-slate-200 dark:border-white/5 px-4 py-3">
-            <p class="text-[10px] text-slate-400 dark:text-slate-600 leading-relaxed">
-                © {{ date('Y') }} InfraTracker<br>
-                Infrastructure Tracker v1.0
+        <div class="border-t border-white/5 px-4 py-4">
+            <p class="text-[10px] leading-relaxed text-slate-500">
+                © {{ date('Y') }} EEC InfraTracker<br>
+                <span class="text-slate-600">v1.0 · Infrastructure PM</span>
             </p>
         </div>
     </aside>
 
     {{-- ─── Main Wrapper ────────────────────────────────────────── --}}
-    <div class="flex min-h-screen flex-col transition-all duration-300 lg:pl-[var(--sidebar-width)]">
+    <div class="enterprise-main flex min-h-screen flex-col transition-all duration-300 lg:pl-[var(--sidebar-width)]">
 
         {{-- Top Header --}}
         <header class="topbar sticky top-0 z-20 flex items-center gap-4 px-4 lg:px-8">
@@ -161,23 +163,115 @@
                 </svg>
             </button>
 
-            {{-- Page title slot (set via @section('header')) --}}
-            <div class="flex-1 min-w-0">
-                @hasSection('header')
-                    @yield('header')
-                @else
-                    <span class="text-sm font-medium text-slate-500 dark:text-slate-400">@yield('title', 'InfraTracker')</span>
-                @endif
+            {{-- Page title + search --}}
+            <div class="flex flex-1 min-w-0 items-center gap-4">
+                <div class="min-w-0 flex-1">
+                    @hasSection('header')
+                        @yield('header')
+                    @else
+                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">@yield('title', 'InfraTracker')</span>
+                    @endif
+                </div>
+                <div
+                    class="relative w-full min-w-0 max-w-[200px] sm:max-w-xs lg:max-w-md"
+                    x-data="globalSearch({
+                        initialQuery: @js(request('q', request('search', ''))),
+                        quickUrl: @js(route('search.quick')),
+                        resultsUrl: @js(route('search.index')),
+                    })"
+                    @click.outside="close()"
+                >
+                    <form role="search" @submit.prevent="submit()" class="topbar-search-form">
+                        <svg class="h-4 w-4 shrink-0 opacity-50" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                        <input
+                            type="search"
+                            x-model="query"
+                            @input.debounce.350ms="fetchQuick()"
+                            @focus="onFocus()"
+                            class="topbar-search-input"
+                            placeholder="Search tasks, projects, suppliers…"
+                            aria-label="Search"
+                            autocomplete="off"
+                        >
+                        <span x-show="loading" x-cloak class="topbar-search-spinner" aria-hidden="true"></span>
+                    </form>
+
+                    <div
+                        x-show="open && (loading || hasResults || (query.length >= 2 && results))"
+                        x-cloak
+                        x-transition
+                        class="search-dropdown"
+                        @mousedown.prevent
+                    >
+                        <template x-if="loading">
+                            <p class="search-dropdown-empty">Searching…</p>
+                        </template>
+                        <template x-if="!loading && query.length >= 2 && results && results.total === 0">
+                            <p class="search-dropdown-empty">No results for “<span x-text="query"></span>”</p>
+                        </template>
+                        <template x-if="!loading && results && results.tasks && results.tasks.length">
+                            <div class="search-dropdown-section">
+                                <p class="search-dropdown-label">Tasks</p>
+                                <template x-for="item in results.tasks" :key="item.url">
+                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
+                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
+                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="!loading && results && results.projects && results.projects.length">
+                            <div class="search-dropdown-section">
+                                <p class="search-dropdown-label">Projects</p>
+                                <template x-for="item in results.projects" :key="item.url">
+                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
+                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
+                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="!loading && results && results.suppliers && results.suppliers.length">
+                            <div class="search-dropdown-section">
+                                <p class="search-dropdown-label">Suppliers</p>
+                                <template x-for="item in results.suppliers" :key="item.url">
+                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
+                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
+                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="!loading && results && results.activities && results.activities.length">
+                            <div class="search-dropdown-section">
+                                <p class="search-dropdown-label">Activity</p>
+                                <template x-for="item in results.activities" :key="item.url">
+                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
+                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
+                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
+                                    </a>
+                                </template>
+                            </div>
+                        </template>
+                        <template x-if="!loading && results && results.total > 0">
+                            <div class="search-dropdown-footer">
+                                <a :href="results.results_url" class="search-dropdown-view-all" @click="close()">
+                                    View all <span x-text="results.total"></span> results →
+                                </a>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             </div>
 
             {{-- Right actions --}}
-            <div class="flex items-center gap-3">
+            <div class="flex items-center gap-2 sm:gap-3">
                 {{-- Notification Center --}}
                 <div class="relative" x-data="{ notificationsOpen: false }" @click.outside="notificationsOpen = false">
                     <button
                         type="button"
                         @click="notificationsOpen = !notificationsOpen"
-                        class="relative flex h-9 w-9 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-400 dark:hover:bg-white/[0.07] dark:hover:text-slate-100"
+                        class="topbar-icon-btn relative"
                         aria-haspopup="menu"
                         :aria-expanded="notificationsOpen.toString()"
                     >
@@ -193,14 +287,14 @@
                         x-show="notificationsOpen"
                         x-cloak
                         x-transition.origin.top.right
-                        class="absolute right-0 mt-2 w-80 overflow-hidden rounded-lg border border-slate-200 bg-white shadow-xl shadow-slate-900/10 dark:border-white/10 dark:bg-[#070e1e] dark:shadow-black/30"
+                        class="notification-panel absolute right-0 mt-2 w-80 sm:w-96"
                     >
                         <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
                             <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 font-sans">Notifications</p>
                             @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
                                 <form action="{{ route('notifications.read-all') }}" method="POST">
                                     @csrf
-                                    <button type="submit" class="text-xs font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400 dark:hover:text-indigo-300">
+                                    <button type="submit" class="text-xs font-semibold text-brand-600 hover:text-brand-500 dark:text-brand-400">
                                         Mark all read
                                     </button>
                                 </form>
@@ -221,7 +315,7 @@
                                             }
                                         }
                                     @endphp
-                                    <div class="px-4 py-3 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02] {{ $isUnread ? 'bg-indigo-50/50 dark:bg-indigo-500/5' : '' }}">
+                                    <div class="px-4 py-3 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02] {{ $isUnread ? 'bg-brand-500/5 dark:bg-brand-500/10 border-l-2 border-brand-500' : '' }}">
                                         <div class="flex items-start gap-2.5">
                                             <span class="mt-0.5 flex h-2 w-2 shrink-0 rounded-full {{ $notification->type === 'created' ? 'bg-emerald-500' : 'bg-blue-500' }}"></span>
                                             <div class="flex-1">
@@ -246,7 +340,7 @@
                 {{-- Theme Toggle --}}
                 <button
                     @click="toggleTheme()"
-                    class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100"
+                    class="topbar-icon-btn"
                     aria-label="Toggle dark mode"
                     :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
                 >
@@ -260,8 +354,8 @@
 
                 {{-- Active Actor Badge --}}
                 @if(isset($activeActor))
-                    <div class="inline-flex h-9 items-center gap-2 rounded-lg border border-slate-200 bg-white px-2.5 text-sm font-semibold text-slate-700 dark:border-white/10 dark:bg-white/[0.04] dark:text-slate-200">
-                        <span class="flex h-5 w-5 items-center justify-center rounded-full text-[9px] font-bold {{ $activeActor === 'Infra Director' ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-300' : ($activeActor === 'Project Manager' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-300' : 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-300') }}">
+                    <div class="actor-chip">
+                        <span class="flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold {{ $activeActor === 'Infra Director' ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400' : ($activeActor === 'Project Manager' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
                             {{ substr($activeActor, 0, 1) }}
                         </span>
                         <span class="hidden sm:inline font-sans text-xs">{{ $activeActor }}</span>
@@ -273,7 +367,7 @@
                     @csrf
                     <button
                         type="submit"
-                        class="flex h-9 items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 text-xs font-bold text-red-600 transition hover:bg-red-50 dark:border-white/10 dark:bg-white/[0.04] dark:text-red-400 dark:hover:bg-red-950/20"
+                        class="topbar-icon-btn !w-auto px-3 text-xs font-bold text-red-600 dark:text-red-400 hover:!bg-red-50 dark:hover:!bg-red-950/30"
                         title="Logout"
                     >
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
@@ -292,5 +386,57 @@
     </div>
 
     <style>[x-cloak]{display:none!important}</style>
+    <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('globalSearch', (config) => ({
+                query: config.initialQuery || '',
+                quickUrl: config.quickUrl,
+                resultsUrl: config.resultsUrl,
+                results: null,
+                loading: false,
+                open: false,
+                get hasResults() {
+                    return this.results && this.results.total > 0;
+                },
+                onFocus() {
+                    this.open = true;
+                    if (this.query.length >= 2 && !this.results) {
+                        this.fetchQuick();
+                    }
+                },
+                close() {
+                    this.open = false;
+                },
+                submit() {
+                    const q = this.query.trim();
+                    if (q.length < 1) return;
+                    window.location.href = this.resultsUrl + '?q=' + encodeURIComponent(q);
+                },
+                async fetchQuick() {
+                    const q = this.query.trim();
+                    if (q.length < 2) {
+                        this.results = null;
+                        this.loading = false;
+                        return;
+                    }
+                    this.loading = true;
+                    this.open = true;
+                    try {
+                        const res = await fetch(
+                            this.quickUrl + '?q=' + encodeURIComponent(q),
+                            { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }
+                        );
+                        if (res.ok) {
+                            this.results = await res.json();
+                        }
+                    } catch (e) {
+                        this.results = null;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+            }));
+        });
+    </script>
 </body>
 </html>

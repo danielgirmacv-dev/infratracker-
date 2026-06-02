@@ -10,9 +10,14 @@ use Maatwebsite\Excel\Facades\Excel;
 
 class SupplierController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $suppliers = Supplier::orderBy('name')->get();
+        $suppliers = Supplier::query()
+            ->when($request->filled('search'), function ($query) use ($request) {
+                $query->where('name', 'like', '%'.$request->string('search').'%');
+            })
+            ->orderBy('name')
+            ->get();
         $totalTasks = Task::count();
         return view('suppliers.index', compact('suppliers', 'totalTasks'));
     }

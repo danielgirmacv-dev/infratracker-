@@ -5,6 +5,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\PasswordController;
 use App\Http\Controllers\ActivityController;
+use App\Http\Controllers\SearchController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [TaskController::class, 'dashboard'])->name('dashboard');
@@ -14,6 +15,9 @@ Route::post('/login', [TaskController::class, 'login']);
 Route::post('/logout', [TaskController::class, 'logout'])->name('logout');
 
 Route::post('/notifications/read-all', [TaskController::class, 'markAllNotificationsRead'])->name('notifications.read-all');
+
+Route::get('/search', [SearchController::class, 'index'])->name('search.index');
+Route::get('/search/quick', [SearchController::class, 'quick'])->name('search.quick');
 
 Route::get('/tasks/export', [TaskController::class, 'export'])->name('tasks.export');
 Route::resource('tasks', TaskController::class)->except(['show']);
