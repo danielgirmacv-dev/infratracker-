@@ -17,7 +17,7 @@
             <p class="page-subtitle">Overview of all infrastructure tasks and progress.</p>
         </div>
         <div class="flex flex-wrap gap-2">
-            @if($activeActor !== 'Employee')
+            @if(($activeRole ?? '') !== 'Employee')
                 <a href="{{ route('tasks.create') }}" class="btn-primary">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Add Task
@@ -145,8 +145,8 @@
                                 <x-progress-bar :value="$task->progress" />
                             </div>
                             @php
-                                $canEditRecent = in_array($activeActor, ['Infra Director', 'Project Manager'], true)
-                                    || ($activeActor === 'Employee' && $task->task_given_to === 'Employee');
+                                $canEditRecent = in_array($activeRole ?? '', ['Infra Director', 'Project Manager'], true)
+                                    || (($activeRole ?? '') === 'Employee' && ($task->task_given_to === $activeActor || ($task->task_given_to === 'Employee' && $activeActor === 'FEVEN')));
                             @endphp
                             @if($canEditRecent)
                                 <a href="{{ route('tasks.edit', $task) }}" class="shrink-0 rounded-lg p-1.5 text-slate-400 dark:text-slate-500 transition hover:bg-indigo-100 dark:bg-indigo-500/10 hover:text-indigo-600 dark:text-indigo-400" title="Edit">
@@ -164,7 +164,7 @@
                     </div>
                     <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">No tasks yet</p>
                     <p class="mt-1 text-xs text-slate-400 dark:text-slate-500">Get started by creating your first task.</p>
-                    @if($activeActor !== 'Employee')
+                    @if(($activeRole ?? '') !== 'Employee')
                         <a href="{{ route('tasks.create') }}" class="btn-primary mt-5">
                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                             Create Task

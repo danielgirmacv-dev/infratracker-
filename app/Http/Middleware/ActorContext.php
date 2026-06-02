@@ -2,16 +2,16 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Employee;
+use App\Models\Notification;
+use App\Support\ActorSession;
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\View;
-use App\Models\Notification;
 
 class ActorContext
 {
-    /**
-     * Handle an incoming request.
-     */
     public function handle(Request $request, Closure $next)
     {
         $isLoginRoute = $request->is('login');
@@ -20,6 +20,7 @@ class ActorContext
             if (!$isLoginRoute) {
                 return redirect()->route('login');
             }
+
             return $next($request);
         }
 
@@ -29,25 +30,37 @@ class ActorContext
 
         $activeActor = $request->session()->get('active_actor');
 
-        // Fetch notifications relevant to the active actor
+        if (!$request->session()->has('active_role')) {
+            $request->session()->put('active_role', ActorSession::loginRoleForActor($activeActor));
+        }
+
+        $activeRole = $request->session()->get('active_role');
+
         $notificationsQuery = Notification::query()
-            ->where(function ($query) use ($activeActor) {
+            ->where(function ($query) use ($activeActor, $activeRole) {
                 $query->where('target_actor', 'all')
-                      ->orWhere('target_actor', $activeActor);
+                    ->orWhere('target_actor', $activeActor);
+
+                if ($activeRole === 'Employee') {
+                    $query->orWhere('target_actor', 'Employee');
+                }
             })
             ->orderByDesc('created_at')
             ->limit(10);
 
-        // Fetch unread notifications count
         $unreadCount = Notification::query()
-            ->where(function ($query) use ($activeActor) {
+            ->where(function ($query) use ($activeActor, $activeRole) {
                 $query->where('target_actor', 'all')
-                      ->orWhere('target_actor', $activeActor);
+                    ->orWhere('target_actor', $activeActor);
+
+                if ($activeRole === 'Employee') {
+                    $query->orWhere('target_actor', 'Employee');
+                }
             })
-            ->where(function ($query) use ($activeActor) {
-                if ($activeActor === 'Infra Director') {
+            ->where(function ($query) use ($activeRole) {
+                if ($activeRole === 'Infra Director') {
                     $query->where('read_by_director', false);
-                } elseif ($activeActor === 'Project Manager') {
+                } elseif ($activeRole === 'Project Manager') {
                     $query->where('read_by_manager', false);
                 } else {
                     $query->where('read_by_employee', false);
@@ -55,11 +68,12 @@ class ActorContext
             })
             ->count();
 
-        $notifications = $notificationsQuery->get();
-
-        // Share globally with all Blade views
         View::share('activeActor', $activeActor);
-        View::share('actorNotifications', $notifications);
+        View::share('activeRole', $activeRole);
+        View::share('employees', Schema::hasTable('employees')
+            ? Employee::orderBy('name')->get()
+            : collect());
+        View::share('actorNotifications', $notificationsQuery->get());
         View::share('unreadNotificationsCount', $unreadCount);
 
         return $next($request);

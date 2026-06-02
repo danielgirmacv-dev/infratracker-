@@ -212,12 +212,16 @@
                         <div class="role-check"><svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></div>
                     </label>
 
-                    <input type="radio" name="actor" value="Employee" id="role-employee" class="role-option" {{ old('actor') === 'Employee' ? 'checked' : '' }}>
-                    <label for="role-employee" class="role-label">
-                        <div class="role-avatar employee">FV</div>
-                        <div class="role-info"><div class="role-name">Feven</div><div class="role-desc">Execute tasks & report progress</div></div>
-                        <div class="role-check"><svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></div>
-                    </label>
+                    @forelse($employees as $employee)
+                        <input type="radio" name="actor" value="{{ $employee->name }}" id="role-{{ $employee->id }}" class="role-option" {{ old('actor', '') === $employee->name || old('actor') === 'Employee' && $employee->name === 'FEVEN' ? 'checked' : '' }}>
+                        <label for="role-{{ $employee->id }}" class="role-label">
+                            <div class="role-avatar employee">{{ strtoupper(substr($employee->name, 0, 2)) }}</div>
+                            <div class="role-info"><div class="role-name">{{ $employee->name }}</div><div class="role-desc">Execute tasks & report progress</div></div>
+                            <div class="role-check"><svg fill="none" viewBox="0 0 24 24" stroke-width="3" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m4.5 12.75 6 6 9-13.5" /></svg></div>
+                        </label>
+                    @empty
+                        <p class="text-center text-xs text-slate-500 py-2">No employees registered. Director must run migration and add employees.</p>
+                    @endforelse
                 </div>
                 @error('actor') <p class="error-msg">{{ $message }}</p> @enderror
             </div>

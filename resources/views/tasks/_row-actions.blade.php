@@ -1,8 +1,11 @@
 @php
-    $canManage = in_array($activeActor, ['Infra Director', 'Project Manager'], true);
-    $isAssignedToEmployee = $task->task_given_to === 'Employee';
-    $showLockBadge = $isAssignedToEmployee && $activeActor === ($task->task_given_by ?? 'Infra Director');
-    $isEditable = $canManage || ($activeActor === 'Employee' && $isAssignedToEmployee);
+    $canManage = in_array($activeRole ?? session('active_role'), ['Infra Director', 'Project Manager'], true);
+    $isAssignedToEmployee = \App\Support\ActorSession::isTaskAssignee($task->task_given_to);
+    $showLockBadge = $isAssignedToEmployee && ($activeActor ?? session('active_actor')) === ($task->task_given_by ?? 'Infra Director');
+    $isEditable = $canManage
+        || (($activeRole ?? session('active_role')) === 'Employee'
+            && ($task->task_given_to === ($activeActor ?? session('active_actor'))
+                || ($task->task_given_to === 'Employee' && ($activeActor ?? session('active_actor')) === 'FEVEN')));
     $iconClass = $iconClass ?? 'h-4 w-4';
     $btnPadding = $btnPadding ?? 'p-1.5';
 @endphp

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\User;
 use App\Models\Task;
+use App\Support\ActorSession;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
@@ -12,6 +13,7 @@ class PasswordController extends Controller
     public function showChangeForm()
     {
         $totalTasks = Task::count();
+
         return view('settings.password', compact('totalTasks'));
     }
 
@@ -27,18 +29,18 @@ class PasswordController extends Controller
             return redirect()->route('login');
         }
 
-        // Retrieve or create active actor user
-        $passwords = [
+        $defaultPasswords = [
             'Infra Director' => 'director123',
             'Project Manager' => 'manager123',
-            'Employee' => 'employee123',
         ];
+
+        $defaultPassword = $defaultPasswords[$activeActor] ?? 'employee123';
 
         $user = User::firstOrCreate(
             ['name' => $activeActor],
             [
-                'email' => strtolower(str_replace(' ', '', $activeActor)) . '@example.com',
-                'password' => Hash::make($passwords[$activeActor])
+                'email' => strtolower(str_replace(' ', '', $activeActor)).'@example.com',
+                'password' => Hash::make($defaultPassword),
             ]
         );
 

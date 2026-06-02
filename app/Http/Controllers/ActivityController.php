@@ -15,9 +15,14 @@ class ActivityController extends Controller
     {
         $activeActor = session('active_actor', 'Infra Director');
 
-        $query = Notification::where(function ($q) use ($activeActor) {
+        $activeRole = session('active_role', $activeActor);
+
+        $query = Notification::where(function ($q) use ($activeActor, $activeRole) {
             $q->where('target_actor', 'all')
               ->orWhere('target_actor', $activeActor);
+            if ($activeRole === 'Employee') {
+                $q->orWhere('target_actor', 'Employee');
+            }
         })->orderByDesc('created_at');
 
         // Filter by type

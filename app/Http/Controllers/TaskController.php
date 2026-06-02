@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Exports\TaskExport;
 use App\Http\Requests\TaskRequest;
 use App\Models\Task;
+use App\Models\Employee;
 use App\Services\CloudflareTurnstile;
+use App\Support\ActorSession;
+use Illuminate\Validation\Rule;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Maatwebsite\Excel\Facades\Excel;
@@ -35,9 +38,13 @@ class TaskController extends Controller
         $totalTasks = $total; // used in sidebar badge
 
         $activeActor = session('active_actor', 'Infra Director');
-        $activityFeed = \App\Models\Notification::where(function ($q) use ($activeActor) {
+        $activeRole = session('active_role', $activeActor);
+        $activityFeed = \App\Models\Notification::where(function ($q) use ($activeActor, $activeRole) {
             $q->where('target_actor', 'all')
               ->orWhere('target_actor', $activeActor);
+            if ($activeRole === 'Employee') {
+                $q->orWhere('target_actor', 'Employee');
+            }
         })->orderByDesc('created_at')
           ->paginate(5, ['*'], 'iteration')
           ->withQueryString();
@@ -87,7 +94,7 @@ class TaskController extends Controller
     public function create()
     {
         $activeActor = session('active_actor', 'Infra Director');
-        if ($activeActor === 'Employee') {
+        if (ActorSession::isEmployee()) {
             return redirect()->route('tasks.index')->with('error', 'Employees are not authorized to create tasks.');
         }
 
@@ -100,8 +107,7 @@ class TaskController extends Controller
      */
     public function store(TaskRequest $request)
     {
-        $activeActor = session('active_actor', 'Infra Director');
-        if ($activeActor === 'Employee') {
+        if (ActorSession::isEmployee()) {
             return redirect()->route('tasks.index')->with('error', 'Employees are not authorized to create tasks.');
         }
 
@@ -125,7 +131,7 @@ class TaskController extends Controller
             'target_actor' => $task->task_given_to,
             'read_by_director' => $activeActor === 'Infra Director',
             'read_by_manager' => $activeActor === 'Project Manager',
-            'read_by_employee' => $activeActor === 'Employee',
+            'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Task created successfully.');
@@ -193,7 +199,7 @@ class TaskController extends Controller
             'target_actor' => 'all',
             'read_by_director' => $activeActor === 'Infra Director',
             'read_by_manager' => $activeActor === 'Project Manager',
-            'read_by_employee' => $activeActor === 'Employee',
+            'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
 
         return redirect()->route('tasks.index')->with('success', 'Task updated successfully.');
@@ -204,8 +210,7 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        $activeActor = session('active_actor', 'Infra Director');
-        if (!in_array($activeActor, ['Infra Director', 'Project Manager'], true)) {
+        if (!ActorSession::canManageTasks()) {
             return redirect()->route('tasks.index')->with('error', 'You are not authorized to delete this task.');
         }
 
@@ -221,6 +226,7 @@ class TaskController extends Controller
     {
         return view('login', [
             'turnstileSiteKey' => config('services.turnstile.site_key'),
+            'employees' => Employee::orderBy('name')->get(),
         ]);
     }
 
@@ -229,8 +235,16 @@ class TaskController extends Controller
      */
     public function login(Request $request, CloudflareTurnstile $turnstile)
     {
+        $employeeNames = \Illuminate\Support\Facades\Schema::hasTable('employees')
+            ? Employee::names()
+            : collect(['FEVEN']);
+
+        $validActors = collect(['Infra Director', 'Project Manager'])
+            ->merge($employeeNames)
+            ->all();
+
         $rules = [
-            'actor' => 'required|in:Infra Director,Project Manager,Employee',
+            'actor' => ['required', Rule::in($validActors)],
             'password' => 'required|string',
         ];
 
@@ -253,27 +267,31 @@ class TaskController extends Controller
         $defaultPasswords = [
             'Infra Director' => 'director123',
             'Project Manager' => 'manager123',
-            'Employee' => 'employee123',
         ];
 
         $actor = $request->input('actor');
+        if ($actor === 'Employee') {
+            $actor = Employee::names()->first() ?? 'FEVEN';
+        }
         $password = $request->input('password');
+        $role = ActorSession::loginRoleForActor($actor);
+        $defaultPassword = $defaultPasswords[$actor] ?? 'employee123';
 
-        // Find or dynamically create user with standard default passwords
         $user = \App\Models\User::firstOrCreate(
             ['name' => $actor],
             [
-                'email' => strtolower(str_replace(' ', '', $actor)) . '@example.com',
-                'password' => \Illuminate\Support\Facades\Hash::make($defaultPasswords[$actor] ?? 'password123')
+                'email' => strtolower(str_replace(' ', '', $actor)).'@example.com',
+                'password' => \Illuminate\Support\Facades\Hash::make($defaultPassword),
             ]
         );
 
         if (!\Illuminate\Support\Facades\Hash::check($password, $user->password)) {
-            return back()->withErrors(['password' => 'Invalid credentials. Please try again.'])->withInput();
+            return back()->withErrors(['password' => 'Invalid credentials. Please try again.'])->withInput($request->except('password'));
         }
 
         $request->session()->regenerate();
         $request->session()->put('active_actor', $actor);
+        $request->session()->put('active_role', $role);
 
         return redirect()->route('dashboard')->with('success', "Welcome back, {$actor}!");
     }
@@ -283,7 +301,7 @@ class TaskController extends Controller
      */
     public function logout(Request $request)
     {
-        $request->session()->forget('active_actor');
+        $request->session()->forget(['active_actor', 'active_role']);
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
@@ -296,16 +314,20 @@ class TaskController extends Controller
     public function markAllNotificationsRead(Request $request)
     {
         $activeActor = $request->session()->get('active_actor', 'Infra Director');
+        $activeRole = $request->session()->get('active_role', $activeActor);
 
         $query = \App\Models\Notification::query()
-            ->where(function ($q) use ($activeActor) {
+            ->where(function ($q) use ($activeActor, $activeRole) {
                 $q->where('target_actor', 'all')
                   ->orWhere('target_actor', $activeActor);
+                if ($activeRole === 'Employee') {
+                    $q->orWhere('target_actor', 'Employee');
+                }
             });
 
-        if ($activeActor === 'Infra Director') {
+        if ($activeRole === 'Infra Director') {
             $query->update(['read_by_director' => true]);
-        } elseif ($activeActor === 'Project Manager') {
+        } elseif ($activeRole === 'Project Manager') {
             $query->update(['read_by_manager' => true]);
         } else {
             $query->update(['read_by_employee' => true]);
@@ -361,10 +383,15 @@ class TaskController extends Controller
 
     private function canModifyTask(Task $task, string $activeActor): bool
     {
-        if (in_array($activeActor, ['Infra Director', 'Project Manager'], true)) {
+        if (ActorSession::canManageTasks()) {
             return true;
         }
 
-        return $activeActor === 'Employee' && $task->task_given_to === 'Employee';
+        if (!ActorSession::isEmployee()) {
+            return false;
+        }
+
+        return $task->task_given_to === $activeActor
+            || ($task->task_given_to === 'Employee' && $activeActor === 'FEVEN');
     }
 }

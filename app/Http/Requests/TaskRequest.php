@@ -2,26 +2,30 @@
 
 namespace App\Http\Requests;
 
+use App\Models\Employee;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
 
 class TaskRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
     public function authorize(): bool
     {
         return true;
     }
 
     /**
-     * Get the validation rules that apply to the request.
-     *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
+        $employeeNames = Schema::hasTable('employees') ? Employee::assigneeOptions() : ['FEVEN'];
+
+        $assignees = array_merge(
+            ['Infra Director', 'Project Manager'],
+            $employeeNames
+        );
+
         $rules = [
             'date' => ['required', 'date'],
             'project_name' => ['required', 'string', 'max:255'],
@@ -33,8 +37,8 @@ class TaskRequest extends FormRequest
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Critical'])],
             'next_action' => ['nullable', 'string', 'max:255'],
             'responsible_department' => [$this->isMethod('post') ? 'nullable' : 'required', 'string', 'max:255'],
-            'task_given_by' => ['nullable', 'string', Rule::in(['Infra Director', 'Project Manager', 'Employee'])],
-            'task_given_to' => ['required', 'string', Rule::in(['Infra Director', 'Project Manager', 'Employee'])],
+            'task_given_by' => ['nullable', 'string', Rule::in($assignees)],
+            'task_given_to' => ['required', 'string', Rule::in($assignees)],
             'remark' => ['nullable', 'string'],
         ];
 

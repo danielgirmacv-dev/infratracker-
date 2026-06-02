@@ -51,7 +51,7 @@
                 </button>
             </div>
 
-            @if($activeActor !== 'Employee')
+            @if(($activeRole ?? '') !== 'Employee')
                 <a href="{{ route('tasks.create') }}" class="btn-primary">
                     <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
                     Add Task

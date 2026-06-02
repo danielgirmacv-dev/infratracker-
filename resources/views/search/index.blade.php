@@ -107,6 +107,22 @@
                 </div>
             @endif
 
+            @if(isset($employees) && $employees->isNotEmpty())
+                <div class="card overflow-hidden">
+                    <div class="panel-header">
+                        <h2 class="panel-title">Employees <span class="font-normal text-slate-400">({{ $employees->count() }})</span></h2>
+                        @if(($activeRole ?? '') === 'Infra Director')
+                            <a href="{{ route('employees.index') }}" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Manage →</a>
+                        @endif
+                    </div>
+                    <ul class="divide-y divide-slate-100 dark:divide-white/[0.04]">
+                        @foreach($employees as $employee)
+                            <li class="px-6 py-3 text-sm font-bold text-slate-700 dark:text-slate-300">{{ $employee->name }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
             @if($activities->isNotEmpty())
                 <div class="card overflow-hidden lg:col-span-2">
                     <div class="panel-header">

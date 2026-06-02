@@ -26,20 +26,20 @@
         <div>
             <label for="date" class="form-label">Date</label>
             <input id="date" type="date" name="date" value="{{ old('date', $t?->date?->format('Y-m-d')) }}"
-                class="form-input @error('date') error @enderror" {{ $activeActor === 'Employee' ? 'readonly' : '' }}>
+                class="form-input @error('date') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}>
             @error('date')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
 
         <div>
             <label for="project_name" class="form-label">Project Name <span class="text-red-600 dark:text-red-400">*</span></label>
             <select id="project_name" name="project_name"
-                class="form-input @error('project_name') error @enderror" {{ $activeActor === 'Employee' ? 'disabled' : '' }}>
+                class="form-input @error('project_name') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
                 <option value="">Select project…</option>
                 @foreach(\App\Models\Project::orderBy('name')->pluck('name') as $pname)
                     <option value="{{ $pname }}" @selected(old('project_name', $t?->project_name) === $pname)>{{ $pname }}</option>
                 @endforeach
             </select>
-            @if($activeActor === 'Employee')
+            @if(($activeRole ?? '') === 'Employee')
                 <input type="hidden" name="project_name" value="{{ old('project_name', $t?->project_name) }}">
             @endif
             @error('project_name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
@@ -49,20 +49,20 @@
             <label for="task_description" class="form-label">Task Description</label>
             <textarea id="task_description" name="task_description" rows="3"
                 placeholder="Describe the task in detail…"
-                class="form-input @error('task_description') error @enderror" {{ $activeActor === 'Employee' ? 'readonly' : '' }}>{{ old('task_description', $t?->task_description) }}</textarea>
+                class="form-input @error('task_description') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}>{{ old('task_description', $t?->task_description) }}</textarea>
             @error('task_description')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
 
         <div>
             <label for="supplier_name" class="form-label">Supplier Name</label>
             <select id="supplier_name" name="supplier_name"
-                class="form-input @error('supplier_name') error @enderror" {{ $activeActor === 'Employee' ? 'disabled' : '' }}>
+                class="form-input @error('supplier_name') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
                 <option value="">Select supplier…</option>
                 @foreach(\App\Models\Supplier::orderBy('name')->pluck('name') as $sname)
                     <option value="{{ $sname }}" @selected(old('supplier_name', $t?->supplier_name) === $sname)>{{ $sname }}</option>
                 @endforeach
             </select>
-            @if($activeActor === 'Employee')
+            @if(($activeRole ?? '') === 'Employee')
                 <input type="hidden" name="supplier_name" value="{{ old('supplier_name', $t?->supplier_name) }}">
             @endif
             @error('supplier_name')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
@@ -74,7 +74,7 @@
                 <span class="inline-flex items-center border-r border-indigo-500/15 bg-slate-100 px-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">ETB</span>
                 <input id="amount" type="number" name="amount" step="0.01" min="0"
                     value="{{ old('amount', $t?->amount) }}" placeholder="0.00"
-                    {{ $activeActor === 'Employee' ? 'readonly' : '' }}
+                    {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}
                     class="block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('amount') border-red-500 @enderror">
             </div>
             @error('amount')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
@@ -128,13 +128,13 @@
 
         <div>
             <label for="priority" class="form-label">Priority <span class="text-red-600 dark:text-red-400">*</span></label>
-            <select id="priority" name="priority" class="form-input @error('priority') error @enderror" {{ $activeActor === 'Employee' ? 'disabled' : '' }}>
+            <select id="priority" name="priority" class="form-input @error('priority') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
                 <option value="">Select priority…</option>
                 @foreach(['Low','Medium','High','Critical'] as $p)
                     <option value="{{ $p }}" @selected(old('priority', $t?->priority) === $p)>{{ $p }}</option>
                 @endforeach
             </select>
-            @if($activeActor === 'Employee')
+            @if(($activeRole ?? '') === 'Employee')
                 <input type="hidden" name="priority" value="{{ old('priority', $t?->priority) }}">
             @endif
             @error('priority')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
@@ -217,19 +217,17 @@
 
         <div>
             <label for="task_given_to" class="form-label">Task Given To <span class="text-red-600 dark:text-red-400">*</span></label>
-            <select id="task_given_to" name="task_given_to" class="form-input @error('task_given_to') error @enderror" {{ $activeActor === 'Employee' ? 'disabled' : '' }}>
+            <select id="task_given_to" name="task_given_to" class="form-input @error('task_given_to') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
                 <option value="">Select assignee…</option>
-                @if($activeActor === 'Infra Director')
+                @if(($activeRole ?? '') === 'Infra Director')
                     <option value="Project Manager" @selected(old('task_given_to', $t?->task_given_to) === 'Project Manager')>Project Coordinator</option>
-                    <option value="Employee" @selected(old('task_given_to', $t?->task_given_to) === 'Employee')>Feven</option>
-                @elseif($activeActor === 'Project Manager')
-                    <option value="Employee" @selected(old('task_given_to', $t?->task_given_to) === 'Employee')>Feven</option>
-                @else
-                    <option value="Employee" @selected(old('task_given_to', $t?->task_given_to) === 'Employee')>Feven</option>
                 @endif
+                @foreach($employees ?? [] as $employee)
+                    <option value="{{ $employee->name }}" @selected(old('task_given_to', $t?->task_given_to) === $employee->name || old('task_given_to', $t?->task_given_to) === 'Employee' && $employee->name === 'FEVEN')>{{ $employee->name }}</option>
+                @endforeach
             </select>
-            @if($activeActor === 'Employee')
-                <input type="hidden" name="task_given_to" value="Employee">
+            @if(($activeRole ?? '') === 'Employee')
+                <input type="hidden" name="task_given_to" value="{{ $activeActor }}">
             @endif
             @error('task_given_to')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>

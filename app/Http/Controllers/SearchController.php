@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Employee;
 use App\Models\Notification;
 use App\Models\Project;
 use App\Models\Supplier;
 use App\Models\Task;
+use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 
@@ -22,6 +24,7 @@ class SearchController extends Controller
                 'tasks' => collect(),
                 'projects' => collect(),
                 'suppliers' => collect(),
+                'employees' => collect(),
                 'activities' => collect(),
                 'totalResults' => 0,
                 'totalTasks' => $totalTasks,
@@ -35,6 +38,7 @@ class SearchController extends Controller
             'totalResults' => $results['tasks']->count()
                 + $results['projects']->count()
                 + $results['suppliers']->count()
+                + $results['employees']->count()
                 + $results['activities']->count(),
             'totalTasks' => $totalTasks,
         ]));
@@ -50,6 +54,7 @@ class SearchController extends Controller
                 'tasks' => [],
                 'projects' => [],
                 'suppliers' => [],
+                'employees' => [],
                 'activities' => [],
                 'total' => 0,
             ]);
@@ -58,7 +63,7 @@ class SearchController extends Controller
         $results = $this->search(
             $query,
             $request->session()->get('active_actor', 'Infra Director'),
-            limits: ['tasks' => 5, 'projects' => 4, 'suppliers' => 4, 'activities' => 4]
+            limits: ['tasks' => 5, 'projects' => 3, 'suppliers' => 3, 'employees' => 3, 'activities' => 4]
         );
 
         return response()->json([
@@ -78,6 +83,11 @@ class SearchController extends Controller
                 'meta' => 'Supplier',
                 'url' => route('suppliers.index', ['search' => $query]),
             ])->values(),
+            'employees' => $results['employees']->map(fn (Employee $e) => [
+                'label' => $e->name,
+                'meta' => 'Employee',
+                'url' => route('employees.index'),
+            ])->values(),
             'activities' => $results['activities']->map(fn (Notification $n) => [
                 'label' => \Illuminate\Support\Str::limit($n->message, 60),
                 'meta' => $n->actor.' · '.$n->created_at->diffForHumans(),
@@ -86,6 +96,7 @@ class SearchController extends Controller
             'total' => $results['tasks']->count()
                 + $results['projects']->count()
                 + $results['suppliers']->count()
+                + $results['employees']->count()
                 + $results['activities']->count(),
             'results_url' => route('search.index', ['q' => $query]),
         ]);
@@ -93,7 +104,7 @@ class SearchController extends Controller
 
     /**
      * @param  array<string, int>|null  $limits
-     * @return array{tasks: \Illuminate\Support\Collection, projects: \Illuminate\Support\Collection, suppliers: \Illuminate\Support\Collection, activities: \Illuminate\Support\Collection}
+     * @return array{tasks: \Illuminate\Support\Collection, projects: \Illuminate\Support\Collection, suppliers: \Illuminate\Support\Collection, employees: \Illuminate\Support\Collection, activities: \Illuminate\Support\Collection}
      */
     private function search(string $query, string $activeActor, ?array $limits = null): array
     {
@@ -102,6 +113,7 @@ class SearchController extends Controller
         $taskLimit = $limits['tasks'] ?? 50;
         $projectLimit = $limits['projects'] ?? 20;
         $supplierLimit = $limits['suppliers'] ?? 20;
+        $employeeLimit = $limits['employees'] ?? 20;
         $activityLimit = $limits['activities'] ?? 20;
 
         $tasks = Task::query()
@@ -132,10 +144,23 @@ class SearchController extends Controller
             ->limit($supplierLimit)
             ->get();
 
+        $employees = Schema::hasTable('employees')
+            ? Employee::query()
+                ->where('name', 'like', $term)
+                ->orderBy('name')
+                ->limit($employeeLimit)
+                ->get()
+            : collect();
+
+        $activeRole = session('active_role', $activeActor);
+
         $activities = Notification::query()
-            ->where(function (Builder $q) use ($activeActor): void {
+            ->where(function (Builder $q) use ($activeActor, $activeRole): void {
                 $q->where('target_actor', 'all')
                     ->orWhere('target_actor', $activeActor);
+                if ($activeRole === 'Employee') {
+                    $q->orWhere('target_actor', 'Employee');
+                }
             })
             ->where('message', 'like', $term)
             ->with('task')
@@ -143,6 +168,6 @@ class SearchController extends Controller
             ->limit($activityLimit)
             ->get();
 
-        return compact('tasks', 'projects', 'suppliers', 'activities');
+        return compact('tasks', 'projects', 'suppliers', 'employees', 'activities');
     }
 }
