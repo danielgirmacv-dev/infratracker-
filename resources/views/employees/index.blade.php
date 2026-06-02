@@ -77,8 +77,8 @@
                     <h2 class="panel-title">Registered employees</h2>
                     <span class="badge bg-brand-500/10 text-brand-700 dark:text-brand-400 ring-1 ring-inset ring-brand-500/25">{{ $employees->count() }} total</span>
                 </div>
-                <div class="overflow-x-auto scrollbar-none">
-                    <table class="data-table w-full">
+                <div class="table-scroll-wrap">
+                    <table class="data-table w-full min-w-[32rem]">
                         <thead>
                             <tr>
                                 <th>#</th>

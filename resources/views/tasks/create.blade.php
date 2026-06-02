@@ -16,7 +16,7 @@
 <div class="animate-slide-up">
 
     {{-- Page Header --}}
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="page-title">New Task</h1>
             <p class="page-subtitle">Fill in the details below to create a new infrastructure task.</p>

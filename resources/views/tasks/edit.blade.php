@@ -16,7 +16,7 @@
 <div class="animate-slide-up">
 
     {{-- Page Header --}}
-    <div class="mb-6 flex items-center justify-between gap-4">
+    <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="page-title">Edit Task: {{ $task->title }}</h1>
             <p class="page-subtitle">Update the details of this infrastructure task.</p>

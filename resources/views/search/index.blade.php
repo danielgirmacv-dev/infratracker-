@@ -47,7 +47,7 @@
                 <svg class="h-7 w-7 text-brand-600 dark:text-brand-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
             </div>
             <p class="text-sm font-semibold text-slate-700 dark:text-slate-300">Start typing to search</p>
-            <p class="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">Use the search bar at the top or the field above.</p>
+            <p class="mt-1 max-w-sm text-xs text-slate-500 dark:text-slate-400">Use the search field above, or filter tasks from the Tasks page.</p>
         </div>
     @elseif($totalResults === 0)
         <div class="card flex flex-col items-center justify-center py-16 text-center">

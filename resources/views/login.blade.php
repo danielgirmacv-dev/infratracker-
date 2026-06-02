@@ -11,6 +11,7 @@
         body {
             font-family: 'Inter', system-ui, sans-serif;
             min-height: 100vh;
+            min-height: 100dvh;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -20,8 +21,9 @@
                 linear-gradient(rgba(28, 180, 201, 0.03) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(28, 180, 201, 0.03) 1px, transparent 1px);
             background-size: auto, 48px 48px, 48px 48px;
-            padding: 1rem;
-            overflow: hidden;
+            padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
+            overflow-x: hidden;
+            overflow-y: auto;
         }
         /* Floating orbs */
         .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .15; animation: float 8s ease-in-out infinite; pointer-events: none; }
@@ -158,6 +160,26 @@
             background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3);
             border-radius: 12px; padding: .6rem 1rem; margin-bottom: 1.25rem;
             font-size: .8rem; color: #34d399; font-weight: 500;
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 1.5rem 1.25rem;
+                border-radius: 1rem;
+            }
+            .logo h1, .logo h1[style] {
+                font-size: 2.25rem !important;
+            }
+            .role-label:hover {
+                transform: none;
+            }
+            .role-name { font-size: .8rem; }
+            .role-desc { font-size: .65rem; }
+            .role-avatar {
+                width: 36px;
+                height: 36px;
+                font-size: .75rem;
+            }
         }
     </style>
 </head>

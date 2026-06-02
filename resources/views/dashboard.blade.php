@@ -100,8 +100,8 @@
             @endphp
             @foreach($statusItems as $item)
                 @php $pct = $total > 0 ? round(($item['count'] / $total) * 100) : 0; @endphp
-                <div class="flex items-center gap-3">
-                    <span class="w-24 shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400">{{ $item['label'] }}</span>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
+                    <span class="w-full shrink-0 text-xs font-medium text-slate-500 dark:text-slate-400 sm:w-24">{{ $item['label'] }}</span>
                     <div class="progress-track flex-1">
                         <div class="{{ $item['color'] }} h-full rounded-full transition-all duration-700" style="width:{{ $pct }}%"></div>
                     </div>
@@ -130,16 +130,19 @@
                     </div>
                     <div class="divide-y divide-slate-100 dark:divide-white/[0.04]">
                         @foreach($recentTasks as $task)
-                        <div class="flex items-center gap-4 px-6 py-3.5 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-500/5">
+                        <div class="flex flex-col gap-3 px-4 py-3.5 transition-colors hover:bg-indigo-50 dark:hover:bg-indigo-500/5 sm:flex-row sm:items-center sm:gap-4 sm:px-6">
                             <div class="min-w-0 flex-1">
                                 <p class="truncate text-sm font-medium text-slate-800 dark:text-slate-200">{{ $task->project_name }}</p>
-                                <p class="mt-0.5 truncate text-xs text-slate-400 dark:text-slate-500">
+                                <p class="mt-0.5 text-xs text-slate-400 dark:text-slate-500 line-clamp-2 sm:truncate">
                                     <span class="text-slate-500 dark:text-slate-400">By:</span> {{ $task->task_given_by ?? 'Infra Director' }} · <span class="text-slate-500 dark:text-slate-400">To:</span> {{ $task->task_given_to ?? '—' }}{{ $task->responsible_department ? ' · '.$task->responsible_department : '' }}
                                 </p>
                             </div>
-                            <div class="flex shrink-0 items-center gap-2">
+                            <div class="flex flex-wrap items-center gap-2 sm:shrink-0">
                                 <x-badge type="priority" :value="$task->priority" />
                                 <x-badge type="status"   :value="$task->status" />
+                                <div class="w-full sm:hidden">
+                                    <x-progress-bar :value="$task->progress" />
+                                </div>
                             </div>
                             <div class="w-20 shrink-0 hidden sm:block">
                                 <x-progress-bar :value="$task->progress" />

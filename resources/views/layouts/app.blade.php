@@ -22,7 +22,7 @@
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.3/dist/cdn.min.js"></script>
 </head>
 <body
-    class="min-h-screen antialiased"
+    class="min-h-screen overflow-x-hidden antialiased"
     x-data="{ 
         sidebarOpen: window.innerWidth >= 1024,
         theme: document.documentElement.classList.contains('dark') ? 'dark' : 'light',
@@ -31,9 +31,13 @@
             localStorage.setItem('theme', this.theme);
             document.documentElement.classList.toggle('dark', this.theme === 'dark');
             document.documentElement.style.colorScheme = this.theme;
+        },
+        closeSidebarOnMobile() {
+            if (window.innerWidth < 1024) this.sidebarOpen = false;
         }
     }"
     @keydown.escape.window="sidebarOpen = false"
+    @resize.window.debounce.150ms="sidebarOpen = window.innerWidth >= 1024"
 >
     {{-- ─── Mobile Overlay ─────────────────────────────────────── --}}
     <div
@@ -83,7 +87,7 @@
             @endphp
 
             {{-- Dashboard --}}
-            <a href="{{ url('/') }}" class="nav-item {{ $dashboardActive ? 'active' : '' }}">
+            <a href="{{ url('/') }}" class="nav-item {{ $dashboardActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
                 </svg>
@@ -91,7 +95,7 @@
             </a>
 
             {{-- Tasks --}}
-            <a href="{{ route('tasks.index') }}" class="nav-item {{ $tasksActive ? 'active' : '' }}">
+            <a href="{{ route('tasks.index') }}" class="nav-item {{ $tasksActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75M9 18h3.75m3 .75H18a2.25 2.25 0 0 0 2.25-2.25V6.108c0-1.135-.845-2.098-1.976-2.192a48.424 48.424 0 0 0-1.123-.08m-5.801 0c-.065.21-.1.433-.1.664 0 .414.336.75.75.75h4.5a.75.75 0 0 0 .75-.75 2.25 2.25 0 0 0-.1-.664m-5.8 0A2.251 2.251 0 0 1 13.5 2.25H15c1.012 0 1.867.668 2.15 1.586m-5.8 0c-.376.023-.75.05-1.124.08C9.095 4.01 8.25 4.973 8.25 6.108V8.25m0 0H4.875c-.621 0-1.125.504-1.125 1.125v11.25c0 .621.504 1.125 1.125 1.125h9.75c.621 0 1.125-.504 1.125-1.125V9.375c0-.621-.504-1.125-1.125-1.125H8.25ZM6.75 12h.008v.008H6.75V12Zm0 3h.008v.008H6.75V15Zm0 3h.008v.008H6.75V18Z" />
                 </svg>
@@ -102,7 +106,7 @@
             </a>
 
             @if(($activeRole ?? '') === 'Infra Director')
-            <a href="{{ route('employees.index') }}" class="nav-item {{ request()->routeIs('employees.*') ? 'active' : '' }}">
+            <a href="{{ route('employees.index') }}" class="nav-item {{ request()->routeIs('employees.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
                 </svg>
@@ -113,7 +117,7 @@
             <p class="nav-section-label mt-3">Master data</p>
 
             {{-- Projects --}}
-            <a href="{{ route('projects.index') }}" class="nav-item {{ $projectsActive ? 'active' : '' }}">
+            <a href="{{ route('projects.index') }}" class="nav-item {{ $projectsActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 13.5h3.86a2.25 2.25 0 0 1 2.008 1.24l.885 1.77a2.25 2.25 0 0 0 2.007 1.24h1.98a2.25 2.25 0 0 0 2.007-1.24l.885-1.77a2.25 2.25 0 0 1 2.007-1.24h3.86m-18 0h18a2.25 2.25 0 0 1 2.25 2.25v4.5A2.25 2.25 0 0 1 18 21.75H6a2.25 2.25 0 0 1-2.25-2.25v-4.5a2.25 2.25 0 0 1 2.25-2.25ZM6 2.25h12A2.25 2.25 0 0 1 20.25 4.5V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18V4.5A2.25 2.25 0 0 1 6 2.25Z" />
                 </svg>
@@ -121,7 +125,7 @@
             </a>
 
             {{-- Suppliers --}}
-            <a href="{{ route('suppliers.index') }}" class="nav-item {{ $suppliersActive ? 'active' : '' }}">
+            <a href="{{ route('suppliers.index') }}" class="nav-item {{ $suppliersActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125a1.125 1.125 0 0 0 1.125-1.125V9.75M8.25 13.875c0-1.125.67-2.16 1.714-2.616l5.625-2.41a3.375 3.375 0 0 1 4.662 3.102m-12 1.924h12.75" />
                 </svg>
@@ -131,7 +135,7 @@
             <p class="nav-section-label mt-3">System</p>
 
             {{-- Change Password --}}
-            <a href="{{ route('settings.password') }}" class="nav-item {{ $settingsActive ? 'active' : '' }}">
+            <a href="{{ route('settings.password') }}" class="nav-item {{ $settingsActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 5.25a3 3 0 0 1 3 3m3 0a3 3 0 0 1-3 3m-3-3a3 3 0 0 1 3-3m-3-3H6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 6 21h12a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                 </svg>
@@ -139,7 +143,7 @@
             </a>
 
             {{-- Activity Log --}}
-            <a href="{{ route('activity.index') }}" class="nav-item {{ $activityActive ? 'active' : '' }}">
+            <a href="{{ route('activity.index') }}" class="nav-item {{ $activityActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h3.75M9 15h3.75m-7.5 6h13.5a2.25 2.25 0 0 0 2.25-2.25V6.108a2.25 2.25 0 0 0-1.976-2.192 48.424 48.424 0 0 0-1.123-.08M9.75 3.75H12a2.25 2.25 0 0 1 2.25 2.25v.75M9 3.75h-.75A2.25 2.25 0 0 0 6 6v.75m3 0V6A2.25 2.25 0 0 1 9.75 3.75m0 0H12" />
                 </svg>
@@ -160,139 +164,36 @@
     <div class="enterprise-main flex min-h-screen flex-col transition-all duration-300 lg:pl-[var(--sidebar-width)]">
 
         {{-- Top Header --}}
-        <header class="topbar sticky top-0 z-20 flex items-center gap-4 px-4 lg:px-8">
-            {{-- Hamburger --}}
-            <button
-                @click="sidebarOpen = !sidebarOpen"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-slate-100 lg:hidden"
-                aria-label="Toggle sidebar"
-            >
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                </svg>
-            </button>
-
-            {{-- Page title + search --}}
-            <div class="flex flex-1 min-w-0 items-center gap-4">
-                <div class="min-w-0 flex-1">
-                    @hasSection('header')
-                        @yield('header')
-                    @else
-                        <span class="text-sm font-semibold text-slate-700 dark:text-slate-200">@yield('title', 'InfraTracker')</span>
-                    @endif
-                </div>
-                <div
-                    class="relative w-full min-w-0 max-w-[200px] sm:max-w-xs lg:max-w-md"
-                    x-data="globalSearch({
-                        initialQuery: @js(request('q', request('search', ''))),
-                        quickUrl: @js(route('search.quick')),
-                        resultsUrl: @js(route('search.index')),
-                    })"
-                    @click.outside="close()"
-                >
-                    <form role="search" @submit.prevent="submit()" class="topbar-search-form">
-                        <svg class="h-4 w-4 shrink-0 opacity-50" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
-                        <input
-                            type="search"
-                            x-model="query"
-                            @input.debounce.350ms="fetchQuick()"
-                            @focus="onFocus()"
-                            class="topbar-search-input"
-                            placeholder="Search tasks, projects, suppliers…"
-                            aria-label="Search"
-                            autocomplete="off"
-                        >
-                        <span x-show="loading" x-cloak class="topbar-search-spinner" aria-hidden="true"></span>
-                    </form>
-
-                    <div
-                        x-show="open && (loading || hasResults || (query.length >= 2 && results))"
-                        x-cloak
-                        x-transition
-                        class="search-dropdown"
-                        @mousedown.prevent
+        <header class="topbar sticky top-0 z-20 px-4 lg:px-8">
+            <div class="topbar-inner">
+                <div class="topbar-main">
+                    <button
+                        @click="sidebarOpen = !sidebarOpen"
+                        class="topbar-icon-btn shrink-0 lg:hidden"
+                        aria-label="Toggle sidebar"
                     >
-                        <template x-if="loading">
-                            <p class="search-dropdown-empty">Searching…</p>
-                        </template>
-                        <template x-if="!loading && query.length >= 2 && results && results.total === 0">
-                            <p class="search-dropdown-empty">No results for “<span x-text="query"></span>”</p>
-                        </template>
-                        <template x-if="!loading && results && results.tasks && results.tasks.length">
-                            <div class="search-dropdown-section">
-                                <p class="search-dropdown-label">Tasks</p>
-                                <template x-for="item in results.tasks" :key="item.url">
-                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
-                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
-                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="!loading && results && results.projects && results.projects.length">
-                            <div class="search-dropdown-section">
-                                <p class="search-dropdown-label">Projects</p>
-                                <template x-for="item in results.projects" :key="item.url">
-                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
-                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
-                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="!loading && results && results.suppliers && results.suppliers.length">
-                            <div class="search-dropdown-section">
-                                <p class="search-dropdown-label">Suppliers</p>
-                                <template x-for="item in results.suppliers" :key="item.url">
-                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
-                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
-                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="!loading && results && results.employees && results.employees.length">
-                            <div class="search-dropdown-section">
-                                <p class="search-dropdown-label">Employees</p>
-                                <template x-for="item in results.employees" :key="item.url">
-                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
-                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
-                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="!loading && results && results.activities && results.activities.length">
-                            <div class="search-dropdown-section">
-                                <p class="search-dropdown-label">Activity</p>
-                                <template x-for="item in results.activities" :key="item.url">
-                                    <a :href="item.url" class="search-dropdown-item" @click="close()">
-                                        <span class="search-dropdown-item-title" x-text="item.label"></span>
-                                        <span class="search-dropdown-item-meta" x-text="item.meta"></span>
-                                    </a>
-                                </template>
-                            </div>
-                        </template>
-                        <template x-if="!loading && results && results.total > 0">
-                            <div class="search-dropdown-footer">
-                                <a :href="results.results_url" class="search-dropdown-view-all" @click="close()">
-                                    View all <span x-text="results.total"></span> results →
-                                </a>
-                            </div>
-                        </template>
+                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </button>
+
+                    <div class="topbar-breadcrumb min-w-0 flex-1">
+                        @hasSection('header')
+                            @yield('header')
+                        @else
+                            <span class="text-sm font-semibold text-slate-700 dark:text-slate-200 truncate block">@yield('title', 'InfraTracker')</span>
+                        @endif
                     </div>
                 </div>
-            </div>
 
-            {{-- Right actions --}}
-            <div class="flex items-center gap-2 sm:gap-3">
+                <div class="topbar-actions">
                 {{-- Notification Center --}}
-                <div class="relative" x-data="{ notificationsOpen: false }" @click.outside="notificationsOpen = false">
+                <div class="topbar-action-item relative" x-data="{ notificationsOpen: false }" @click.outside="notificationsOpen = false">
                     <button
                         type="button"
                         @click="notificationsOpen = !notificationsOpen"
-                        class="topbar-icon-btn relative"
-                        aria-haspopup="menu"
+                        class="topbar-icon-btn relative shrink-0"
+                        aria-haspopup="true"
                         :aria-expanded="notificationsOpen.toString()"
                     >
                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
@@ -306,53 +207,65 @@
                     <div
                         x-show="notificationsOpen"
                         x-cloak
-                        x-transition.origin.top.right
-                        class="notification-panel absolute right-0 mt-2 w-80 sm:w-96"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 scale-95"
+                        x-transition:enter-end="opacity-100 scale-100"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 scale-100"
+                        x-transition:leave-end="opacity-0 scale-95"
+                        class="notification-dropdown"
+                        role="dialog"
+                        aria-label="Notifications"
                     >
-                        <div class="flex items-center justify-between border-b border-slate-200 px-4 py-3 dark:border-white/10">
-                            <p class="text-sm font-semibold text-slate-900 dark:text-slate-100 font-sans">Notifications</p>
-                            @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
-                                <form action="{{ route('notifications.read-all') }}" method="POST">
-                                    @csrf
-                                    <button type="submit" class="text-xs font-semibold text-brand-600 hover:text-brand-500 dark:text-brand-400">
-                                        Mark all read
-                                    </button>
-                                </form>
-                            @endif
-                        </div>
-                        <div class="max-h-80 overflow-y-auto divide-y divide-slate-100 dark:divide-white/5">
-                            @if(isset($actorNotifications) && $actorNotifications->isNotEmpty())
-                                @foreach($actorNotifications as $notification)
-                                    @php
-                                        $isUnread = false;
-                                        if (isset($activeActor)) {
-                                            if (($activeRole ?? '') === 'Infra Director') {
-                                                $isUnread = !$notification->read_by_director;
-                                            } elseif (($activeRole ?? '') === 'Project Manager') {
-                                                $isUnread = !$notification->read_by_manager;
-                                            } else {
-                                                $isUnread = !$notification->read_by_employee;
+                        <div class="notification-panel">
+                            <div class="notification-panel-header">
+                                <h2 class="notification-panel-title">Notifications</h2>
+                                @if(isset($unreadNotificationsCount) && $unreadNotificationsCount > 0)
+                                    <form action="{{ route('notifications.read-all') }}" method="POST">
+                                        @csrf
+                                        <button type="submit">Mark all read</button>
+                                    </form>
+                                @endif
+                            </div>
+                            <div class="notification-list">
+                                @if(isset($actorNotifications) && $actorNotifications->isNotEmpty())
+                                    @foreach($actorNotifications as $notification)
+                                        @php
+                                            $isUnread = false;
+                                            if (isset($activeActor)) {
+                                                if (($activeRole ?? '') === 'Infra Director') {
+                                                    $isUnread = !$notification->read_by_director;
+                                                } elseif (($activeRole ?? '') === 'Project Manager') {
+                                                    $isUnread = !$notification->read_by_manager;
+                                                } else {
+                                                    $isUnread = !$notification->read_by_employee;
+                                                }
                                             }
-                                        }
-                                    @endphp
-                                    <div class="px-4 py-3 text-xs transition-colors hover:bg-slate-50 dark:hover:bg-white/[0.02] {{ $isUnread ? 'bg-brand-500/5 dark:bg-brand-500/10 border-l-2 border-brand-500' : '' }}">
-                                        <div class="flex items-start gap-2.5">
-                                            <span class="mt-0.5 flex h-2 w-2 shrink-0 rounded-full {{ $notification->type === 'created' ? 'bg-emerald-500' : 'bg-blue-500' }}"></span>
-                                            <div class="flex-1">
-                                                <p class="text-slate-700 dark:text-slate-300 leading-relaxed">{{ $notification->message }}</p>
-                                                <p class="mt-1 text-[10px] text-slate-400 dark:text-slate-500">{{ $notification->created_at->diffForHumans() }}</p>
+                                            $dotClass = match ($notification->type) {
+                                                'created' => 'notification-dot--created',
+                                                'updated' => 'notification-dot--updated',
+                                                default => 'notification-dot--default',
+                                            };
+                                        @endphp
+                                        <article class="notification-item {{ $isUnread ? 'is-unread' : '' }}">
+                                            <span class="notification-dot {{ $dotClass }}" aria-hidden="true"></span>
+                                            <div class="notification-body">
+                                                <p class="notification-message">{{ $notification->message }}</p>
+                                                <time class="notification-time" datetime="{{ $notification->created_at->toIso8601String() }}">
+                                                    {{ $notification->created_at->diffForHumans() }}
+                                                </time>
                                             </div>
-                                        </div>
+                                        </article>
+                                    @endforeach
+                                @else
+                                    <div class="notification-empty">
+                                        <svg class="mx-auto mb-2 h-8 w-8 opacity-35" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a9.04 9.04 0 0 1-1.657 0 9.04 9.04 0 0 1-1.657 0m0 0a9.041 9.041 0 0 1-3.62-4.72m3.62 4.72a9.041 9.041 0 0 0 3.62-4.72M12 2.25c-3.15 0-5.719 2.457-5.719 5.485 0 2.898-.95 5.421-2.42 7.643h16.278c-1.47-2.222-2.42-4.745-2.42-7.643 0-3.028-2.569-5.485-5.719-5.485Z" />
+                                        </svg>
+                                        <p class="text-xs">No notifications yet</p>
                                     </div>
-                                @endforeach
-                            @else
-                                <div class="px-4 py-6 text-center text-slate-400 dark:text-slate-500">
-                                    <svg class="mx-auto h-8 w-8 opacity-35 mb-2" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M14.857 17.082a9.04 9.04 0 0 1-1.657 0 9.04 9.04 0 0 1-1.657 0m0 0a9.041 9.041 0 0 1-3.62-4.72m3.62 4.72a9.041 9.041 0 0 0 3.62-4.72M12 2.25c-3.15 0-5.719 2.457-5.719 5.485 0 2.898-.95 5.421-2.42 7.643h16.278c-1.47-2.222-2.42-4.745-2.42-7.643 0-3.028-2.569-5.485-5.719-5.485Z" />
-                                    </svg>
-                                    <p class="text-xs">No notifications yet</p>
-                                </div>
-                            @endif
+                                @endif
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -360,7 +273,7 @@
                 {{-- Theme Toggle --}}
                 <button
                     @click="toggleTheme()"
-                    class="topbar-icon-btn"
+                    class="topbar-icon-btn shrink-0"
                     aria-label="Toggle dark mode"
                     :title="theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'"
                 >
@@ -374,8 +287,8 @@
 
                 {{-- Active Actor Badge --}}
                 @if(isset($activeActor))
-                    <div class="actor-chip">
-                        <span class="flex h-6 w-6 items-center justify-center rounded-lg text-[10px] font-bold {{ ($activeRole ?? '') === 'Infra Director' ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400' : (($activeRole ?? '') === 'Project Manager' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
+                    <div class="topbar-action-item actor-chip shrink-0" title="{{ $activeActor }}">
+                        <span class="flex h-7 w-7 sm:h-6 sm:w-6 items-center justify-center rounded-lg text-[10px] font-bold {{ ($activeRole ?? '') === 'Infra Director' ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400' : (($activeRole ?? '') === 'Project Manager' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
                             {{ substr($activeActor, 0, 1) }}
                         </span>
                         <span class="hidden sm:inline font-sans text-xs">{{ $activeActor }}</span>
@@ -383,80 +296,30 @@
                 @endif
 
                 {{-- Logout Button --}}
-                <form action="{{ route('logout') }}" method="POST" class="inline-block">
+                <form action="{{ route('logout') }}" method="POST" class="topbar-action-item m-0 shrink-0">
                     @csrf
                     <button
                         type="submit"
-                        class="topbar-icon-btn !w-auto px-3 text-xs font-bold text-red-600 dark:text-red-400 hover:!bg-red-50 dark:hover:!bg-red-950/30"
+                        class="topbar-logout-btn"
                         title="Logout"
+                        aria-label="Logout"
                     >
-                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15M12 9l-3 3m0 0 3 3m-3-3h12.75" />
                         </svg>
-                        <span class="hidden md:inline">Logout</span>
+                        <span class="hidden lg:inline ml-1.5 text-xs font-bold">Logout</span>
                     </button>
                 </form>
+                </div>
             </div>
         </header>
 
         {{-- Content --}}
-        <main class="flex-1 p-4 lg:p-8 animate-fade-in">
+        <main class="flex-1 p-3 sm:p-4 lg:p-8 animate-fade-in">
             @yield('content')
         </main>
     </div>
 
     <style>[x-cloak]{display:none!important}</style>
-    <script>
-        document.addEventListener('alpine:init', () => {
-            Alpine.data('globalSearch', (config) => ({
-                query: config.initialQuery || '',
-                quickUrl: config.quickUrl,
-                resultsUrl: config.resultsUrl,
-                results: null,
-                loading: false,
-                open: false,
-                get hasResults() {
-                    return this.results && this.results.total > 0;
-                },
-                onFocus() {
-                    this.open = true;
-                    if (this.query.length >= 2 && !this.results) {
-                        this.fetchQuick();
-                    }
-                },
-                close() {
-                    this.open = false;
-                },
-                submit() {
-                    const q = this.query.trim();
-                    if (q.length < 1) return;
-                    window.location.href = this.resultsUrl + '?q=' + encodeURIComponent(q);
-                },
-                async fetchQuick() {
-                    const q = this.query.trim();
-                    if (q.length < 2) {
-                        this.results = null;
-                        this.loading = false;
-                        return;
-                    }
-                    this.loading = true;
-                    this.open = true;
-                    try {
-                        const res = await fetch(
-                            this.quickUrl + '?q=' + encodeURIComponent(q),
-                            { headers: { Accept: 'application/json', 'X-Requested-With': 'XMLHttpRequest' } }
-                        );
-                        if (res.ok) {
-                            this.results = await res.json();
-                        }
-                    } catch (e) {
-                        this.results = null;
-                    } finally {
-                        this.loading = false;
-                    }
-                },
-            }));
-        });
-    </script>
 </body>
 </html>

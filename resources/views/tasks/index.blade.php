@@ -11,7 +11,7 @@
 @section('content')
 <div
     class="space-y-6 animate-slide-up"
-    x-data="{ viewMode: 'table', deleteModalOpen: false, deleteUrl: '', deleteLabel: '' }"
+    x-data="{ viewMode: window.innerWidth < 768 ? 'kanban' : 'table', deleteModalOpen: false, deleteUrl: '', deleteLabel: '' }"
     @keydown.escape.window="deleteModalOpen = false"
 >
     {{-- Flash message --}}
@@ -127,7 +127,11 @@
 
     {{-- Table View --}}
     <div x-show="viewMode === 'table'" x-transition:enter="transition ease-out duration-300" x-transition:enter-start="opacity-0 translate-y-4" x-transition:enter-end="opacity-100 translate-y-0" class="card overflow-hidden">
-        <div class="overflow-x-auto scrollbar-none">
+        <p class="table-scroll-hint">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5 7.5 7.5-7.5 7.5m9 0 7.5 7.5-7.5-7.5" /></svg>
+            Swipe horizontally to see all columns
+        </p>
+        <div class="table-scroll-wrap">
             <table class="data-table min-w-[1100px]">
                 <thead>
                     <tr>
@@ -217,7 +221,7 @@
                     $theme = $headerColors[$status];
                 @endphp
                 
-                <div class="flex flex-col rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] p-4 {{ $theme['border'] }} border-t-4 shadow-sm min-h-[500px]">
+                <div class="flex flex-col rounded-2xl border border-slate-200 dark:border-white/5 bg-slate-50/50 dark:bg-white/[0.01] p-4 {{ $theme['border'] }} border-t-4 shadow-sm min-h-0 md:min-h-[400px] lg:min-h-[500px]">
                     {{-- Column Header --}}
                     <div class="flex items-center justify-between mb-4 pb-2 border-b border-slate-200 dark:border-white/5">
                         <div class="flex items-center gap-2">
@@ -282,7 +286,7 @@
                                     @endif
 
                                     {{-- Action buttons --}}
-                                    <div class="flex items-center justify-end border-t border-slate-100 dark:border-white/[0.04] pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div class="flex items-center justify-end border-t border-slate-100 dark:border-white/[0.04] pt-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                                         @include('tasks._row-actions', ['task' => $task, 'iconClass' => 'h-3.5 w-3.5', 'btnPadding' => 'p-1'])
                                     </div>
                                 </div>

@@ -91,8 +91,8 @@
                     <span class="rounded-full bg-indigo-100 dark:bg-indigo-500/20 px-2 py-0.5 text-xs font-semibold text-indigo-600 dark:text-indigo-400">{{ $projects->count() }} Total</span>
                 </div>
 
-                <div class="overflow-x-auto scrollbar-none">
-                    <table class="data-table w-full">
+                <div class="table-scroll-wrap">
+                    <table class="data-table w-full min-w-[28rem]">
                         <thead>
                             <tr>
                                 <th>#</th>
