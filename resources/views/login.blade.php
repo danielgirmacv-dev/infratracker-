@@ -15,31 +15,31 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #061018;
+            background: #f8fafc;
             background-image:
-                radial-gradient(ellipse 100% 80% at 50% -30%, rgba(28, 180, 201, 0.18), transparent),
-                linear-gradient(rgba(28, 180, 201, 0.03) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(28, 180, 201, 0.03) 1px, transparent 1px);
+                radial-gradient(ellipse 100% 80% at 50% -30%, rgba(28, 180, 201, 0.12), transparent),
+                linear-gradient(rgba(28, 180, 201, 0.02) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(28, 180, 201, 0.02) 1px, transparent 1px);
             background-size: auto, 48px 48px, 48px 48px;
             padding: max(1rem, env(safe-area-inset-top)) max(1rem, env(safe-area-inset-right)) max(1rem, env(safe-area-inset-bottom)) max(1rem, env(safe-area-inset-left));
             overflow-x: hidden;
             overflow-y: auto;
         }
         /* Floating orbs */
-        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .15; animation: float 8s ease-in-out infinite; pointer-events: none; }
+        .orb { position: fixed; border-radius: 50%; filter: blur(80px); opacity: .12; animation: float 8s ease-in-out infinite; pointer-events: none; }
         .orb-1 { width: 300px; height: 300px; background: #1cb4c9; top: -80px; left: -60px; }
         .orb-2 { width: 250px; height: 250px; background: #0b5e6f; bottom: -60px; right: -40px; animation-delay: 3s; }
         @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-30px); } }
 
         .login-container {
             width: 100%; max-width: 440px;
-            background: rgba(12, 30, 46, 0.75);
+            background: rgba(255, 255, 255, 0.85);
             backdrop-filter: blur(20px) saturate(160%);
             -webkit-backdrop-filter: blur(20px) saturate(160%);
-            border: 1px solid rgba(28, 180, 201, 0.2);
+            border: 1px solid rgba(28, 180, 201, 0.15);
             border-radius: 1.25rem;
             padding: 2.25rem 2rem;
-            box-shadow: 0 0 0 1px rgba(255,255,255,.04), 0 24px 64px rgba(0,0,0,.45), 0 0 80px rgba(28,180,201,.08);
+            box-shadow: 0 0 0 1px rgba(255,255,255,.6), 0 20px 40px rgba(15,23,42,.08), 0 0 80px rgba(28,180,201,.04);
             animation: slideUp .6s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative; z-index: 1;
         }
@@ -49,7 +49,7 @@
             inset: 0;
             border-radius: inherit;
             padding: 1px;
-            background: linear-gradient(135deg, rgba(28,180,201,.35), transparent 50%);
+            background: linear-gradient(135deg, rgba(28,180,201,.25), transparent 50%);
             -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
             -webkit-mask-composite: xor;
@@ -67,52 +67,52 @@
             font-weight: 700;
             letter-spacing: .08em;
             text-transform: uppercase;
-            color: #67e8f9;
-            background: rgba(28, 180, 201, 0.12);
-            border: 1px solid rgba(28, 180, 201, 0.25);
+            color: #0e7490;
+            background: rgba(28, 180, 201, 0.08);
+            border: 1px solid rgba(28, 180, 201, 0.2);
         }
         @keyframes slideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
 
         .logo { text-align: center; margin-bottom: 2rem; }
         .logo-img { max-width: 200px; height: auto; margin-bottom: 1rem; }
-        .logo h1 { font-size: 1.5rem; font-weight: 800; color: #f1f5f9; letter-spacing: -.02em; }
-        .logo p { font-size: .8rem; color: #a5f3fc; margin-top: .25rem; }
+        .logo h1 { font-size: 1.5rem; font-weight: 800; color: #0f172a; letter-spacing: -.02em; }
+        .logo p { font-size: .8rem; color: #0891b2; margin-top: .25rem; }
 
         .role-grid { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.5rem; }
         .role-option { display: none; }
         .role-label {
             display: flex; align-items: center; gap: .85rem;
             padding: .85rem 1rem; border-radius: 14px; cursor: pointer;
-            border: 1.5px solid rgba(255,255,255,.06);
-            background: rgba(255,255,255,.03);
+            border: 1.5px solid rgba(15,23,42,.08);
+            background: rgba(15,23,42,.02);
             transition: all .25s ease;
         }
-        .role-label:hover { background: rgba(28,180,201,.08); border-color: rgba(28,180,201,.3); transform: translateX(4px); }
-        .role-option:checked + .role-label { background: rgba(28,180,201,.12); border-color: rgba(28,180,201,.5); box-shadow: 0 0 20px rgba(28,180,201,.15); }
+        .role-label:hover { background: rgba(28,180,201,.06); border-color: rgba(28,180,201,.3); transform: translateX(4px); }
+        .role-option:checked + .role-label { background: rgba(28,180,201,.08); border-color: rgba(28,180,201,.4); box-shadow: 0 0 20px rgba(28,180,201,.08); }
         .role-avatar {
             width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center;
             font-weight: 800; font-size: .85rem; flex-shrink: 0;
         }
-        .role-avatar.director { background: rgba(28,180,201,.2); color: #67e8f9; }
-        .role-avatar.manager { background: rgba(11,94,111,.3); color: #22d3ee; }
-        .role-avatar.employee { background: rgba(255,255,255,.1); color: #fff; }
+        .role-avatar.director { background: rgba(28,180,201,.15); color: #0e7490; }
+        .role-avatar.manager { background: rgba(11,94,111,.15); color: #0b5e6f; }
+        .role-avatar.employee { background: rgba(15,23,42,.08); color: #334155; }
         .role-info { flex: 1; }
-        .role-name { font-size: .85rem; font-weight: 700; color: #e2e8f0; }
+        .role-name { font-size: .85rem; font-weight: 700; color: #1e293b; }
         .role-desc { font-size: .7rem; color: #64748b; margin-top: .1rem; }
-        .role-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(255,255,255,.12); display: flex; align-items: center; justify-content: center; transition: all .2s; }
+        .role-check { width: 20px; height: 20px; border-radius: 50%; border: 2px solid rgba(15,23,42,.12); display: flex; align-items: center; justify-content: center; transition: all .2s; }
         .role-option:checked + .role-label .role-check { border-color: #1cb4c9; background: #1cb4c9; }
         .role-option:checked + .role-label .role-check svg { opacity: 1; }
         .role-check svg { width: 12px; height: 12px; color: #fff; opacity: 0; transition: opacity .2s; }
 
         .form-group { margin-bottom: 1.25rem; }
-        .form-label { display: block; font-size: .75rem; font-weight: 600; color: #94a3b8; margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .05em; }
+        .form-label { display: block; font-size: .75rem; font-weight: 600; color: #475569; margin-bottom: .4rem; text-transform: uppercase; letter-spacing: .05em; }
         .form-input {
-            width: 100%; padding: .7rem 1rem; border-radius: 12px; font-size: .85rem; color: #e2e8f0;
-            background: rgba(255,255,255,.05); border: 1.5px solid rgba(255,255,255,.08);
+            width: 100%; padding: .7rem 1rem; border-radius: 12px; font-size: .85rem; color: #0f172a;
+            background: rgba(15,23,42,.02); border: 1.5px solid rgba(15,23,42,.08);
             outline: none; transition: all .2s; font-family: inherit;
         }
-        .form-input:focus { border-color: rgba(28,180,201,.5); box-shadow: 0 0 0 3px rgba(28,180,201,.15); }
-        .form-input::placeholder { color: #475569; }
+        .form-input:focus { border-color: rgba(28,180,201,.4); box-shadow: 0 0 0 3px rgba(28,180,201,.1); }
+        .form-input::placeholder { color: #94a3b8; }
 
         .password-wrap { position: relative; }
         .password-wrap .form-input { padding-right: 2.75rem; }
@@ -122,7 +122,7 @@
             color: #64748b; display: flex; align-items: center; justify-content: center;
             transition: color .2s;
         }
-        .password-toggle:hover { color: #94a3b8; }
+        .password-toggle:hover { color: #475569; }
         .password-toggle:focus { outline: none; color: #1cb4c9; }
         .password-toggle svg { width: 1.15rem; height: 1.15rem; }
 
@@ -138,7 +138,7 @@
         .turnstile-hint {
             display: none;
             font-size: .7rem;
-            color: #fbbf24;
+            color: #d97706;
             text-align: center;
             line-height: 1.5;
             max-width: 280px;
@@ -149,17 +149,17 @@
             width: 100%; padding: .8rem; border: none; border-radius: 14px; cursor: pointer;
             font-size: .9rem; font-weight: 700; font-family: inherit; color: #fff;
             background: linear-gradient(135deg, #1cb4c9, #0b5e6f);
-            box-shadow: 0 4px 15px rgba(28,180,201,.4);
+            box-shadow: 0 4px 15px rgba(28,180,201,.25);
             transition: all .3s ease;
         }
-        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(28,180,201,.5); }
+        .btn-login:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(28,180,201,.35); }
         .btn-login:active { transform: translateY(0); }
 
-        .error-msg { color: #f87171; font-size: .75rem; margin-top: .4rem; font-weight: 500; }
+        .error-msg { color: #dc2626; font-size: .75rem; margin-top: .4rem; font-weight: 500; }
         .success-msg {
-            background: rgba(16,185,129,.1); border: 1px solid rgba(16,185,129,.3);
+            background: rgba(16,185,129,.08); border: 1px solid rgba(16,185,129,.2);
             border-radius: 12px; padding: .6rem 1rem; margin-bottom: 1.25rem;
-            font-size: .8rem; color: #34d399; font-weight: 500;
+            font-size: .8rem; color: #059669; font-weight: 500;
         }
 
         @media (max-width: 480px) {
@@ -206,9 +206,9 @@
                     <rect x="20" y="32" width="20" height="8" rx="2.5" fill="#1cb4c9"/>
                     <rect x="0" y="40" width="20" height="8" rx="2.5" fill="#1cb4c9"/>
                 </svg>
-                <h1 style="font-size: 3.5rem; font-weight: 800; color: #ffffff; margin: 0; line-height: 1; letter-spacing: 1px;">EEC</h1>
+                <h1 style="font-size: 3.5rem; font-weight: 800; color: #0f172a; margin: 0; line-height: 1; letter-spacing: 1px;">EEC</h1>
             </div>
-            <p style="font-size: .85rem; color: #a5f3fc;">Infrastructure Project Management</p>
+            <p style="font-size: .85rem; color: #0891b2;">Infrastructure Project Management</p>
         </div>
 
         @if(session('success'))
