@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use App\Models\Employee;
+use App\Support\MoneyFormat;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -12,6 +13,21 @@ class TaskRequest extends FormRequest
     public function authorize(): bool
     {
         return true;
+    }
+
+    protected function prepareForValidation(): void
+    {
+        if ($this->has('amount')) {
+            $this->merge([
+                'amount' => MoneyFormat::parse($this->input('amount')),
+            ]);
+        }
+
+        if ($this->has('liters')) {
+            $this->merge([
+                'liters' => MoneyFormat::parse($this->input('liters')),
+            ]);
+        }
     }
 
     /**
@@ -32,6 +48,7 @@ class TaskRequest extends FormRequest
             'task_description' => ['required', 'string'],
             'supplier_name' => ['nullable', 'string', 'max:255'],
             'amount' => ['nullable', 'numeric', 'min:0'],
+            'liters' => ['nullable', 'numeric', 'min:0'],
             'start_date' => [$this->isMethod('post') ? 'nullable' : 'required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Critical'])],

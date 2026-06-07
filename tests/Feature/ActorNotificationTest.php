@@ -35,13 +35,13 @@ class ActorNotificationTest extends TestCase
         $response = $this->get(route('login'));
 
         $response->assertStatus(200);
-        $response->assertSee('Select Your Role');
+        $response->assertSee('Username');
     }
 
     public function test_actor_login_with_valid_credentials_authenticates_successfully(): void
     {
         $response = $this->post(route('login'), [
-            'actor' => 'Project Manager',
+            'username' => 'Project Manager',
             'password' => 'manager123',
         ]);
 
@@ -52,7 +52,7 @@ class ActorNotificationTest extends TestCase
     public function test_actor_login_with_invalid_credentials_returns_errors(): void
     {
         $response = $this->post(route('login'), [
-            'actor' => 'Project Manager',
+            'username' => 'Project Manager',
             'password' => 'wrongpassword',
         ]);
 

@@ -141,6 +141,7 @@
                         <th class="min-w-[8rem]">Description</th>
                         <th>Supplier</th>
                         <th>Amount</th>
+                        <th>Liters</th>
                         <th>Start</th>
                         <th>End</th>
                         <th>Status</th>
@@ -164,7 +165,13 @@
                             <td class="max-w-[8rem] truncate text-slate-500 dark:text-slate-400" title="{{ $task->supplier_name }}">{{ $task->supplier_name ?? '—' }}</td>
                             <td class="whitespace-nowrap tabular-nums text-slate-700 dark:text-slate-300">
                                 @if($task->amount !== null && $task->amount !== '')
-                                    <span class="text-xs text-slate-400 dark:text-slate-500">ETB</span> {{ number_format((float)$task->amount, 2) }}
+                                    <span class="text-xs text-slate-400 dark:text-slate-500">ETB</span> {{ \App\Support\MoneyFormat::format($task->amount) }}
+                                @else —
+                                @endif
+                            </td>
+                            <td class="whitespace-nowrap tabular-nums text-slate-700 dark:text-slate-300">
+                                @if($task->liters !== null && $task->liters !== '')
+                                    {{ \App\Support\MoneyFormat::format($task->liters) }} <span class="text-xs text-slate-400 dark:text-slate-500">L</span>
                                 @else —
                                 @endif
                             </td>
@@ -188,7 +195,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="16" class="py-16 text-center">
+                            <td colspan="17" class="py-16 text-center">
                                 <div class="flex flex-col items-center gap-3">
                                     <svg class="h-10 w-10 text-slate-400 dark:text-slate-600" fill="none" viewBox="0 0 24 24" stroke-width="1" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 15.803a7.5 7.5 0 0 0 10.607 0Z" /></svg>
                                     <p class="text-sm font-medium text-slate-500 dark:text-slate-400">No tasks match your filters</p>

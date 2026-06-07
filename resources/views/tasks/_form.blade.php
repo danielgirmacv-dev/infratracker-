@@ -72,12 +72,40 @@
             <label for="amount" class="form-label">Amount (ETB)</label>
             <div class="currency-input flex overflow-hidden rounded-lg border border-indigo-500/15">
                 <span class="inline-flex items-center border-r border-indigo-500/15 bg-slate-100 px-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">ETB</span>
-                <input id="amount" type="number" name="amount" step="0.01" min="0"
-                    value="{{ old('amount', $t?->amount) }}" placeholder="0.00"
+                <input
+                    id="amount"
+                    type="text"
+                    name="amount"
+                    inputmode="decimal"
+                    value="{{ \App\Support\MoneyFormat::format(old('amount', $t?->amount)) }}"
+                    placeholder="e.g. 12,527,000"
                     {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}
-                    class="block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('amount') border-red-500 @enderror">
+                    class="comma-number-input block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('amount') border-red-500 @enderror"
+                    autocomplete="off"
+                >
             </div>
+            <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Cost in ETB, e.g. 12,527,000</p>
             @error('amount')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+        </div>
+
+        <div>
+            <label for="liters" class="form-label">Liters</label>
+            <div class="currency-input flex overflow-hidden rounded-lg border border-indigo-500/15">
+                <span class="inline-flex items-center border-r border-indigo-500/15 bg-slate-100 px-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">L</span>
+                <input
+                    id="liters"
+                    type="text"
+                    name="liters"
+                    inputmode="decimal"
+                    value="{{ \App\Support\MoneyFormat::format(old('liters', $t?->liters)) }}"
+                    placeholder="e.g. 50,000"
+                    {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}
+                    class="comma-number-input block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('liters') border-red-500 @enderror"
+                    autocomplete="off"
+                >
+            </div>
+            <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Volume in liters, e.g. 50,000</p>
+            @error('liters')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
 
     </div>
@@ -242,3 +270,40 @@
 
     </div>
 </div>
+
+<script>
+    (function () {
+        function formatCommaNumber(raw) {
+            var value = String(raw).replace(/[^\d.]/g, '');
+            var dotIndex = value.indexOf('.');
+            var intPart = dotIndex === -1 ? value : value.slice(0, dotIndex);
+            var decPart = dotIndex === -1 ? '' : value.slice(dotIndex + 1).replace(/\./g, '').slice(0, 2);
+
+            intPart = intPart.replace(/^0+(?=\d)/, '');
+            if (intPart === '' && (decPart !== '' || value.includes('.'))) {
+                intPart = '0';
+            }
+
+            var formatted = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            if (dotIndex !== -1) {
+                formatted += '.' + decPart;
+            }
+
+            return formatted;
+        }
+
+        document.querySelectorAll('.comma-number-input').forEach(function (input) {
+            if (input.readOnly) return;
+
+            input.addEventListener('input', function () {
+                input.value = formatCommaNumber(input.value);
+            });
+
+            input.addEventListener('blur', function () {
+                if (input.value.endsWith('.')) {
+                    input.value = input.value.slice(0, -1);
+                }
+            });
+        });
+    })();
+</script>

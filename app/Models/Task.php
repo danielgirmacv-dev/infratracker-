@@ -20,6 +20,7 @@ class Task extends Model
         'task_description',
         'supplier_name',
         'amount',
+        'liters',
         'start_date',
         'end_date',
         'status',
@@ -37,6 +38,7 @@ class Task extends Model
         'start_date' => 'date',
         'end_date' => 'date',
         'amount' => 'decimal:2',
+        'liters' => 'decimal:2',
     ];
 
     public function notifications()

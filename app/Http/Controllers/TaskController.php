@@ -224,9 +224,22 @@ class TaskController extends Controller
      */
     public function showLogin()
     {
+        $employees = Employee::orderBy('name')->get();
+
+        $actors = collect([
+            ['name' => 'Infra Director', 'label' => 'Infra Director', 'hint' => 'Full oversight & task delegation', 'initials' => 'ID', 'tone' => 'director'],
+            ['name' => 'Project Manager', 'label' => 'Project Coordinator', 'hint' => 'Coordinate projects & teams', 'initials' => 'PC', 'tone' => 'manager'],
+        ])->merge($employees->map(fn ($e) => [
+            'name' => $e->name,
+            'label' => $e->name,
+            'hint' => 'Execute tasks & report progress',
+            'initials' => strtoupper(substr($e->name, 0, 2)),
+            'tone' => 'employee',
+        ]));
+
         return view('login', [
             'turnstileSiteKey' => config('services.turnstile.site_key'),
-            'employees' => Employee::orderBy('name')->get(),
+            'actors' => $actors,
         ]);
     }
 
@@ -235,16 +248,8 @@ class TaskController extends Controller
      */
     public function login(Request $request, CloudflareTurnstile $turnstile)
     {
-        $employeeNames = \Illuminate\Support\Facades\Schema::hasTable('employees')
-            ? Employee::names()
-            : collect(['FEVEN']);
-
-        $validActors = collect(['Infra Director', 'Project Manager'])
-            ->merge($employeeNames)
-            ->all();
-
         $rules = [
-            'actor' => ['required', Rule::in($validActors)],
+            'username' => 'required|string|max:100',
             'password' => 'required|string',
         ];
 
@@ -263,16 +268,19 @@ class TaskController extends Controller
                 ->withInput($request->except('password', 'cf-turnstile-response'));
         }
 
-        // Simple default password map for each actor
+        $actor = $this->resolveLoginActor($request->input('username'));
+
+        if (!$actor) {
+            return back()
+                ->withErrors(['username' => 'No account found with that username.'])
+                ->withInput($request->except('password'));
+        }
+
         $defaultPasswords = [
             'Infra Director' => 'director123',
             'Project Manager' => 'manager123',
         ];
 
-        $actor = $request->input('actor');
-        if ($actor === 'Employee') {
-            $actor = Employee::names()->first() ?? 'FEVEN';
-        }
         $password = $request->input('password');
         $role = ActorSession::loginRoleForActor($actor);
         $defaultPassword = $defaultPasswords[$actor] ?? 'employee123';
@@ -291,9 +299,7 @@ class TaskController extends Controller
 
             if (!$user) {
                 return back()->withErrors([
-                    'actor' => Employee::isEmployeeName($actor)
-                        ? 'No login account for this employee. Ask the Director to add you with a password.'
-                        : 'Account not found.',
+                    'username' => 'No login account for this user. Ask the Director to add you with a password.',
                 ])->withInput($request->except('password'));
             }
         }
@@ -307,6 +313,40 @@ class TaskController extends Controller
         $request->session()->put('active_role', $role);
 
         return redirect()->route('dashboard')->with('success', "Welcome back, {$actor}!");
+    }
+
+    private function resolveLoginActor(string $username): ?string
+    {
+        $input = trim($username);
+        if ($input === '') {
+            return null;
+        }
+
+        $normalized = strtolower($input);
+
+        if (in_array($normalized, ['infra director', 'director', 'id'], true)) {
+            return 'Infra Director';
+        }
+
+        if (in_array($normalized, ['project manager', 'project cordinator', 'project coordinator', 'coordinator', 'manager', 'pc'], true)) {
+            return 'Project Manager';
+        }
+
+        if (\Illuminate\Support\Facades\Schema::hasTable('employees')) {
+            $employee = Employee::query()
+                ->whereRaw('UPPER(name) = ?', [Employee::normalizeName($input)])
+                ->first();
+
+            if ($employee) {
+                return $employee->name;
+            }
+        }
+
+        $user = \App\Models\User::query()
+            ->whereRaw('UPPER(name) = ?', [strtoupper($input)])
+            ->first();
+
+        return $user?->name;
     }
 
     /**
