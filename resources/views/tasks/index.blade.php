@@ -141,7 +141,7 @@
                         <th class="min-w-[8rem]">Description</th>
                         <th>Supplier</th>
                         <th>Amount</th>
-                        <th>Liters</th>
+                        <th>Quantities</th>
                         <th>Start</th>
                         <th>End</th>
                         <th>Status</th>
@@ -170,8 +170,11 @@
                                 @endif
                             </td>
                             <td class="whitespace-nowrap tabular-nums text-slate-700 dark:text-slate-300">
-                                @if($task->liters !== null && $task->liters !== '')
-                                    {{ \App\Support\MoneyFormat::format($task->liters) }} <span class="text-xs text-slate-400 dark:text-slate-500">L</span>
+                                @if($task->quantity !== null && $task->quantity !== '')
+                                    {{ \App\Support\MoneyFormat::format($task->quantity) }}
+                                    @if($task->quantity_unit)
+                                        <span class="text-xs text-slate-400 dark:text-slate-500">{{ $task->quantity_unit }}</span>
+                                    @endif
                                 @else —
                                 @endif
                             </td>

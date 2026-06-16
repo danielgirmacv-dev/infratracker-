@@ -3,6 +3,7 @@
 namespace App\Support;
 
 use App\Models\Employee;
+use App\Models\Manager;
 
 class ActorSession
 {
@@ -36,6 +37,11 @@ class ActorSession
         return self::isDirector() || self::isManager();
     }
 
+    public static function canManageEmployees(): bool
+    {
+        return self::isDirector() || self::isManager();
+    }
+
     public static function isTaskAssignee(string $assignee): bool
     {
         if ($assignee === 'Employee') {
@@ -47,8 +53,12 @@ class ActorSession
 
     public static function loginRoleForActor(string $actor): string
     {
-        if (in_array($actor, ['Infra Director', 'Project Manager'], true)) {
-            return $actor;
+        if ($actor === 'Infra Director') {
+            return 'Infra Director';
+        }
+
+        if ($actor === 'Project Manager' || Manager::isManagerName($actor)) {
+            return 'Project Manager';
         }
 
         if ($actor === 'Employee') {

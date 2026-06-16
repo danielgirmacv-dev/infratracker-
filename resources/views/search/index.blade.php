@@ -111,7 +111,7 @@
                 <div class="card overflow-hidden">
                     <div class="panel-header">
                         <h2 class="panel-title">Employees <span class="font-normal text-slate-400">({{ $employees->count() }})</span></h2>
-                        @if(($activeRole ?? '') === 'Infra Director')
+                        @if(in_array($activeRole ?? '', ['Infra Director', 'Project Manager']))
                             <a href="{{ route('employees.index') }}" class="text-xs font-semibold text-brand-600 dark:text-brand-400 hover:underline">Manage →</a>
                         @endif
                     </div>

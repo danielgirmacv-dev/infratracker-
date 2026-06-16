@@ -2,7 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Models\Manager;
 use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -14,6 +16,14 @@ class TaskControllerHttpTest extends TestCase
     {
         parent::setUp();
         session(['active_actor' => 'Infra Director']);
+
+        Manager::create(['name' => 'PCOORD']);
+        User::create([
+            'name' => 'PCOORD',
+            'email' => 'pcoord@infratracker.local',
+            'password' => 'manager123',
+            'must_change_password' => false,
+        ]);
     }
 
     /**
@@ -33,7 +43,7 @@ class TaskControllerHttpTest extends TestCase
             'progress' => 25,
             'next_action' => 'Review draft',
             'responsible_department' => 'Operations',
-            'task_given_to' => 'Project Manager',
+            'task_given_to' => 'PCOORD',
             'remark' => 'Notes here',
         ], $overrides);
     }
@@ -172,7 +182,7 @@ class TaskControllerHttpTest extends TestCase
     public function test_employee_cannot_edit_other_peoples_tasks(): void
     {
         $task = Task::create($this->validTaskPayload([
-            'task_given_to' => 'Project Manager'
+            'task_given_to' => 'PCOORD'
         ]));
 
         session(['active_actor' => 'Employee']);

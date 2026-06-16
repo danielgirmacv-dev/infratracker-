@@ -89,23 +89,37 @@
         </div>
 
         <div>
-            <label for="liters" class="form-label">Liters</label>
+            <label for="quantity" class="form-label">Quantities</label>
             <div class="currency-input flex overflow-hidden rounded-lg border border-indigo-500/15">
-                <span class="inline-flex items-center border-r border-indigo-500/15 bg-slate-100 px-3 text-xs font-semibold text-slate-500 dark:bg-white/[0.03] dark:text-slate-400">L</span>
+                <select
+                    id="quantity_unit"
+                    name="quantity_unit"
+                    {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}
+                    class="max-w-[5.5rem] shrink-0 cursor-pointer border-r border-indigo-500/15 bg-slate-100 px-2 py-2.5 text-xs font-semibold text-slate-600 focus:outline-none focus:ring-0 dark:bg-white/[0.03] dark:text-slate-300 @error('quantity_unit') border-red-500 @enderror"
+                >
+                    <option value="">Unit</option>
+                    @foreach(\App\Support\QuantityUnit::options() as $unit)
+                        <option value="{{ $unit }}" @selected(old('quantity_unit', $t?->quantity_unit) === $unit)>{{ $unit }}</option>
+                    @endforeach
+                </select>
+                @if(($activeRole ?? '') === 'Employee')
+                    <input type="hidden" name="quantity_unit" value="{{ old('quantity_unit', $t?->quantity_unit) }}">
+                @endif
                 <input
-                    id="liters"
+                    id="quantity"
                     type="text"
-                    name="liters"
+                    name="quantity"
                     inputmode="decimal"
-                    value="{{ \App\Support\MoneyFormat::format(old('liters', $t?->liters)) }}"
+                    value="{{ \App\Support\MoneyFormat::format(old('quantity', $t?->quantity)) }}"
                     placeholder="e.g. 50,000"
                     {{ ($activeRole ?? '') === 'Employee' ? 'readonly' : '' }}
-                    class="comma-number-input block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('liters') border-red-500 @enderror"
+                    class="comma-number-input block min-w-0 flex-1 bg-transparent px-3 py-2.5 text-sm text-slate-800 dark:text-slate-200 placeholder-slate-600 focus:outline-none focus:ring-0 @error('quantity') border-red-500 @enderror"
                     autocomplete="off"
                 >
             </div>
-            <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Volume in liters, e.g. 50,000</p>
-            @error('liters')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Select a unit, then enter the quantity (e.g. 50,000 Kg)</p>
+            @error('quantity')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
+            @error('quantity_unit')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
 
     </div>
@@ -245,13 +259,22 @@
 
         <div>
             <label for="task_given_to" class="form-label">Task Given To <span class="text-red-600 dark:text-red-400">*</span></label>
+            @php
+                $taskGiver = $t ? $t->task_given_by : ($activeActor ?? '');
+            @endphp
             <select id="task_given_to" name="task_given_to" class="form-input @error('task_given_to') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
                 <option value="">Select assignee…</option>
-                @if(($activeRole ?? '') === 'Infra Director')
-                    <option value="Project Manager" @selected(old('task_given_to', $t?->task_given_to) === 'Project Manager')>Project Coordinator</option>
+                @if(in_array($activeRole ?? '', ['Infra Director', 'Project Manager']))
+                    @foreach($managers ?? [] as $manager)
+                        @if($manager->name !== $taskGiver)
+                        <option value="{{ $manager->name }}" @selected(old('task_given_to', $t?->task_given_to) === $manager->name || old('task_given_to', $t?->task_given_to) === 'Project Manager' && $loop->first)>{{ $manager->name }}</option>
+                        @endif
+                    @endforeach
                 @endif
                 @foreach($employees ?? [] as $employee)
+                    @if($employee->name !== $taskGiver)
                     <option value="{{ $employee->name }}" @selected(old('task_given_to', $t?->task_given_to) === $employee->name || old('task_given_to', $t?->task_given_to) === 'Employee' && $employee->name === 'FEVEN')>{{ $employee->name }}</option>
+                    @endif
                 @endforeach
             </select>
             @if(($activeRole ?? '') === 'Employee')

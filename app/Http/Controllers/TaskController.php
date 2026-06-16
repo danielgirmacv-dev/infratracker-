@@ -6,6 +6,7 @@ use App\Exports\TaskExport;
 use App\Http\Requests\TaskRequest;
 use App\Models\Task;
 use App\Models\Employee;
+use App\Models\Manager;
 use App\Services\CloudflareTurnstile;
 use App\Support\ActorSession;
 use Illuminate\Validation\Rule;
@@ -130,7 +131,7 @@ class TaskController extends Controller
             'message' => "{$activeActor} assigned task '{$task->project_name}' to {$task->task_given_to}.",
             'target_actor' => $task->task_given_to,
             'read_by_director' => $activeActor === 'Infra Director',
-            'read_by_manager' => $activeActor === 'Project Manager',
+            'read_by_manager' => ActorSession::isManager(),
             'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
 
@@ -198,7 +199,7 @@ class TaskController extends Controller
             'message' => $message,
             'target_actor' => 'all',
             'read_by_director' => $activeActor === 'Infra Director',
-            'read_by_manager' => $activeActor === 'Project Manager',
+            'read_by_manager' => ActorSession::isManager(),
             'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
 
@@ -225,11 +226,17 @@ class TaskController extends Controller
     public function showLogin()
     {
         $employees = Employee::orderBy('name')->get();
+        $managers = Manager::orderBy('name')->get();
 
         $actors = collect([
             ['name' => 'Infra Director', 'label' => 'Infra Director', 'hint' => 'Full oversight & task delegation', 'initials' => 'ID', 'tone' => 'director'],
-            ['name' => 'Project Manager', 'label' => 'Project Coordinator', 'hint' => 'Coordinate projects & teams', 'initials' => 'PC', 'tone' => 'manager'],
-        ])->merge($employees->map(fn ($e) => [
+        ])->merge($managers->map(fn ($m) => [
+            'name' => $m->name,
+            'label' => $m->name,
+            'hint' => 'Coordinate projects & manage employees',
+            'initials' => strtoupper(substr($m->name, 0, 2)),
+            'tone' => 'manager',
+        ]))->merge($employees->map(fn ($e) => [
             'name' => $e->name,
             'label' => $e->name,
             'hint' => 'Execute tasks & report progress',
@@ -276,21 +283,15 @@ class TaskController extends Controller
                 ->withInput($request->except('password'));
         }
 
-        $defaultPasswords = [
-            'Infra Director' => 'director123',
-            'Project Manager' => 'manager123',
-        ];
-
         $password = $request->input('password');
         $role = ActorSession::loginRoleForActor($actor);
-        $defaultPassword = $defaultPasswords[$actor] ?? 'employee123';
 
-        if (in_array($actor, ['Infra Director', 'Project Manager'], true)) {
+        if ($actor === 'Infra Director') {
             $user = \App\Models\User::firstOrCreate(
                 ['name' => $actor],
                 [
-                    'email' => strtolower(str_replace(' ', '', $actor)).'@infratracker.local',
-                    'password' => $defaultPassword,
+                    'email' => 'infradirector@infratracker.local',
+                    'password' => 'director123',
                     'must_change_password' => false,
                 ]
             );
@@ -298,8 +299,12 @@ class TaskController extends Controller
             $user = \App\Models\User::where('name', $actor)->first();
 
             if (!$user) {
+                $hint = Manager::isManagerName($actor) || Employee::isEmployeeName($actor)
+                    ? 'Ask the Director or your Manager to add you with a password.'
+                    : 'No login account for this user. Ask the Director to add you with a password.';
+
                 return back()->withErrors([
-                    'username' => 'No login account for this user. Ask the Director to add you with a password.',
+                    'username' => $hint,
                 ])->withInput($request->except('password'));
             }
         }
@@ -328,8 +333,20 @@ class TaskController extends Controller
             return 'Infra Director';
         }
 
+        if (\Illuminate\Support\Facades\Schema::hasTable('managers')) {
+            $manager = Manager::query()
+                ->whereRaw('UPPER(name) = ?', [Manager::normalizeName($input)])
+                ->first();
+
+            if ($manager) {
+                return $manager->name;
+            }
+        }
+
         if (in_array($normalized, ['project manager', 'project cordinator', 'project coordinator', 'coordinator', 'manager', 'pc'], true)) {
-            return 'Project Manager';
+            $firstManager = Manager::query()->orderBy('name')->first();
+
+            return $firstManager?->name;
         }
 
         if (\Illuminate\Support\Facades\Schema::hasTable('employees')) {

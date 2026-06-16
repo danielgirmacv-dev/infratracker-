@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Employee;
+use App\Models\Manager;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\ActorSession;
@@ -12,18 +13,19 @@ class EmployeeController extends Controller
 {
     public function index()
     {
-        $this->ensureDirector();
+        $this->ensureCanManageEmployees();
 
         $employees = Employee::orderBy('name')->get();
         $usersByName = User::whereIn('name', $employees->pluck('name'))->get()->keyBy('name');
         $totalTasks = Task::count();
+        $canDelete = ActorSession::isDirector();
 
-        return view('employees.index', compact('employees', 'usersByName', 'totalTasks'));
+        return view('employees.index', compact('employees', 'usersByName', 'totalTasks', 'canDelete'));
     }
 
     public function store(Request $request)
     {
-        $this->ensureDirector();
+        $this->ensureCanManageEmployees();
 
         $request->validate([
             'name' => 'required|string|max:100',
@@ -38,6 +40,10 @@ class EmployeeController extends Controller
 
         if (Employee::where('name', $name)->exists()) {
             return back()->withErrors(['name' => 'An employee with this name already exists.'])->withInput();
+        }
+
+        if (Manager::where('name', $name)->exists()) {
+            return back()->withErrors(['name' => 'This name is already used by a manager.'])->withInput();
         }
 
         Employee::create(['name' => $name]);
@@ -59,7 +65,9 @@ class EmployeeController extends Controller
 
     public function destroy(Employee $employee)
     {
-        $this->ensureDirector();
+        if (!ActorSession::isDirector()) {
+            abort(403, 'Only the Infra Director can remove employees.');
+        }
 
         if ($employee->name === 'FEVEN' && Employee::count() === 1) {
             return redirect()->back()->with('error', 'Cannot delete the last employee account.');
@@ -80,10 +88,10 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', "Employee {$employee->name} removed.");
     }
 
-    private function ensureDirector(): void
+    private function ensureCanManageEmployees(): void
     {
-        if (!ActorSession::isDirector()) {
-            abort(403, 'Only the Infra Director can manage employees.');
+        if (!ActorSession::canManageEmployees()) {
+            abort(403, 'Only the Infra Director or a Manager can manage employees.');
         }
     }
 }

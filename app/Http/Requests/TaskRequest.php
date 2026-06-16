@@ -3,7 +3,9 @@
 namespace App\Http\Requests;
 
 use App\Models\Employee;
+use App\Models\Manager;
 use App\Support\MoneyFormat;
+use App\Support\QuantityUnit;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Validation\Rule;
@@ -23,9 +25,9 @@ class TaskRequest extends FormRequest
             ]);
         }
 
-        if ($this->has('liters')) {
+        if ($this->has('quantity')) {
             $this->merge([
-                'liters' => MoneyFormat::parse($this->input('liters')),
+                'quantity' => MoneyFormat::parse($this->input('quantity')),
             ]);
         }
     }
@@ -36,19 +38,21 @@ class TaskRequest extends FormRequest
     public function rules(): array
     {
         $employeeNames = Schema::hasTable('employees') ? Employee::assigneeOptions() : ['FEVEN'];
+        $managerNames = Schema::hasTable('managers') ? Manager::assigneeOptions() : [];
 
-        $assignees = array_merge(
-            ['Infra Director', 'Project Manager'],
-            $employeeNames
-        );
+        $assignees = array_values(array_filter(
+            array_merge(['Infra Director'], $managerNames, $employeeNames),
+            fn (string $name) => $name !== $this->taskGiverName()
+        ));
 
         $rules = [
             'date' => ['required', 'date'],
             'project_name' => ['required', 'string', 'max:255'],
             'task_description' => ['required', 'string'],
             'supplier_name' => ['nullable', 'string', 'max:255'],
-            'amount' => ['nullable', 'numeric', 'min:0'],
-            'liters' => ['nullable', 'numeric', 'min:0'],
+            'amount' => ['nullable', 'numeric', 'min:0', 'max:9999999999999.99'],
+            'quantity' => ['nullable', 'numeric', 'min:0'],
+            'quantity_unit' => ['nullable', 'string', Rule::in(QuantityUnit::options())],
             'start_date' => [$this->isMethod('post') ? 'nullable' : 'required', 'date'],
             'end_date' => ['nullable', 'date', 'after_or_equal:start_date'],
             'priority' => ['required', Rule::in(['Low', 'Medium', 'High', 'Critical'])],
@@ -65,5 +69,16 @@ class TaskRequest extends FormRequest
         }
 
         return $rules;
+    }
+
+    private function taskGiverName(): string
+    {
+        $task = $this->route('task');
+
+        if ($task) {
+            return (string) $task->task_given_by;
+        }
+
+        return (string) $this->session()->get('active_actor', 'Infra Director');
     }
 }

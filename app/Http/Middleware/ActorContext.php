@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Models\Employee;
+use App\Models\Manager;
 use App\Models\Notification;
 use App\Support\ActorSession;
 use Closure;
@@ -72,6 +73,9 @@ class ActorContext
         View::share('activeRole', $activeRole);
         View::share('employees', Schema::hasTable('employees')
             ? Employee::orderBy('name')->get()
+            : collect());
+        View::share('managers', Schema::hasTable('managers')
+            ? Manager::orderBy('name')->get()
             : collect());
         View::share('actorNotifications', $notificationsQuery->get());
         View::share('unreadNotificationsCount', $unreadCount);

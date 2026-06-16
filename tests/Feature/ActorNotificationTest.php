@@ -2,14 +2,38 @@
 
 namespace Tests\Feature;
 
-use App\Models\Task;
+use App\Models\Manager;
 use App\Models\Notification;
+use App\Models\Task;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ActorNotificationTest extends TestCase
 {
     use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        Manager::create(['name' => 'PCOORD']);
+        User::create([
+            'name' => 'PCOORD',
+            'email' => 'pcoord@infratracker.local',
+            'password' => 'manager123',
+            'must_change_password' => false,
+        ]);
+
+        User::updateOrCreate(
+            ['name' => 'FEVEN'],
+            [
+                'email' => 'feven@infratracker.local',
+                'password' => 'employee123',
+                'must_change_password' => false,
+            ]
+        );
+    }
 
     private function validTaskPayload(array $overrides = []): array
     {
@@ -25,7 +49,7 @@ class ActorNotificationTest extends TestCase
             'progress' => 25,
             'next_action' => 'Review draft',
             'responsible_department' => 'Operations',
-            'task_given_to' => 'Employee',
+            'task_given_to' => 'FEVEN',
             'remark' => 'Notes here',
         ], $overrides);
     }
@@ -41,18 +65,19 @@ class ActorNotificationTest extends TestCase
     public function test_actor_login_with_valid_credentials_authenticates_successfully(): void
     {
         $response = $this->post(route('login'), [
-            'username' => 'Project Manager',
+            'username' => 'PCOORD',
             'password' => 'manager123',
         ]);
 
         $response->assertRedirect(route('dashboard'));
-        $response->assertSessionHas('active_actor', 'Project Manager');
+        $response->assertSessionHas('active_actor', 'PCOORD');
+        $response->assertSessionHas('active_role', 'Project Manager');
     }
 
     public function test_actor_login_with_invalid_credentials_returns_errors(): void
     {
         $response = $this->post(route('login'), [
-            'username' => 'Project Manager',
+            'username' => 'PCOORD',
             'password' => 'wrongpassword',
         ]);
 
@@ -77,7 +102,7 @@ class ActorNotificationTest extends TestCase
         session(['active_actor' => 'Infra Director']);
 
         $payload = $this->validTaskPayload([
-            'task_given_to' => 'Employee',
+            'task_given_to' => 'FEVEN',
             'project_name' => 'Design API',
         ]);
 
@@ -91,27 +116,27 @@ class ActorNotificationTest extends TestCase
         // Check notification
         $notification = Notification::where('task_id', $task->item_no)->firstOrFail();
         $this->assertSame('Infra Director', $notification->actor);
-        $this->assertSame('Employee', $notification->target_actor);
+        $this->assertSame('FEVEN', $notification->target_actor);
         $this->assertTrue($notification->read_by_director);
-        $this->assertFalse($notification->read_by_employee);
-        $this->assertStringContainsString('Infra Director assigned task \'Design API\' to Employee', $notification->message);
+        $this->assertTrue($notification->read_by_employee);
+        $this->assertStringContainsString('Infra Director assigned task \'Design API\' to FEVEN', $notification->message);
     }
 
     public function test_updating_task_generates_notification_for_all(): void
     {
         $task = Task::create($this->validTaskPayload([
             'project_name' => 'Build frontend',
-            'task_given_to' => 'Employee',
+            'task_given_to' => 'FEVEN',
             'status' => 'Pending',
             'progress' => 10,
         ]));
 
-        // Set context to Employee
-        session(['active_actor' => 'Employee']);
+        // Set context to FEVEN (employee)
+        session(['active_actor' => 'FEVEN', 'active_role' => 'Employee']);
 
         $updatedPayload = $this->validTaskPayload([
             'project_name' => 'Build frontend',
-            'task_given_to' => 'Employee',
+            'task_given_to' => 'FEVEN',
             'status' => 'In Progress',
             'progress' => 50,
         ]);
@@ -124,12 +149,12 @@ class ActorNotificationTest extends TestCase
             ->where('task_id', $task->item_no)
             ->firstOrFail();
 
-        $this->assertSame('Employee', $updateNotification->actor);
+        $this->assertSame('FEVEN', $updateNotification->actor);
         $this->assertSame('all', $updateNotification->target_actor);
         $this->assertTrue($updateNotification->read_by_employee);
         $this->assertFalse($updateNotification->read_by_director);
         $this->assertFalse($updateNotification->read_by_manager);
-        $this->assertStringContainsString('Employee updated task \'Build frontend\'', $updateNotification->message);
+        $this->assertStringContainsString('FEVEN updated task \'Build frontend\'', $updateNotification->message);
         $this->assertStringContainsString('status changed to \'In Progress\'', $updateNotification->message);
         $this->assertStringContainsString('progress updated to 50%', $updateNotification->message);
     }
@@ -163,8 +188,8 @@ class ActorNotificationTest extends TestCase
             'read_by_employee' => false,
         ]);
 
-        // As Employee, mark all as read
-        session(['active_actor' => 'Employee']);
+        // As FEVEN (employee), mark all as read
+        session(['active_actor' => 'FEVEN', 'active_role' => 'Employee']);
 
         $response = $this->post(route('notifications.read-all'));
         $response->assertRedirect();

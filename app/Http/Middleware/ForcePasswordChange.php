@@ -11,7 +11,7 @@ class ForcePasswordChange
 {
     public function handle(Request $request, Closure $next)
     {
-        if (!ActorSession::isEmployee()) {
+        if (ActorSession::isDirector()) {
             return $next($request);
         }
 
