@@ -18,7 +18,7 @@
     {{-- Page Header --}}
     <div class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
-            <h1 class="page-title">Edit Task: {{ $task->title }}</h1>
+            <h1 class="page-title">Edit Task: {{ $task->project_name }}</h1>
             <p class="page-subtitle">Update the details of this infrastructure task.</p>
         </div>
         <a href="{{ route('tasks.index') }}" class="btn-ghost hidden sm:inline-flex">

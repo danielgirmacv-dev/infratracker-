@@ -24,6 +24,15 @@ class TaskControllerHttpTest extends TestCase
             'password' => 'manager123',
             'must_change_password' => false,
         ]);
+
+        User::updateOrCreate(
+            ['name' => 'FEVEN'],
+            [
+                'email' => 'feven@infratracker.local',
+                'password' => 'employee123',
+                'must_change_password' => false,
+            ]
+        );
     }
 
     /**
@@ -146,29 +155,32 @@ class TaskControllerHttpTest extends TestCase
         $this->assertDatabaseMissing('tasks', ['item_no' => $key]);
     }
 
-    public function test_original_creator_cannot_edit_task_after_given_to_employee(): void
+    public function test_director_can_edit_task_assigned_to_employee(): void
     {
         $task = Task::create($this->validTaskPayload([
-            'task_given_to' => 'Employee',
-            'task_given_by' => 'Infra Director'
+            'task_given_to' => 'FEVEN',
+            'task_given_by' => 'Infra Director',
         ]));
 
         $response = $this->get(route('tasks.edit', $task));
-        $response->assertRedirect(route('tasks.index'));
-        $response->assertSessionHas('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
+        $response->assertOk();
+        $response->assertSee('Edit Task');
 
-        $responseUpdate = $this->put(route('tasks.update', $task), $this->validTaskPayload());
+        $responseUpdate = $this->put(route('tasks.update', $task), $this->validTaskPayload([
+            'status' => 'In Progress',
+            'progress' => 25,
+        ]));
         $responseUpdate->assertRedirect(route('tasks.index'));
-        $responseUpdate->assertSessionHas('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
+        $responseUpdate->assertSessionHas('success', 'Task updated successfully.');
 
         $responseDelete = $this->delete(route('tasks.destroy', $task));
         $responseDelete->assertRedirect(route('tasks.index'));
-        $responseDelete->assertSessionHas('error', 'Original creator cannot delete tasks after they are assigned to an employee.');
+        $responseDelete->assertSessionHas('success', 'Task deleted.');
     }
 
     public function test_employee_cannot_create_tasks(): void
     {
-        session(['active_actor' => 'Employee']);
+        session(['active_actor' => 'FEVEN', 'active_role' => 'Employee']);
 
         $responseCreate = $this->get(route('tasks.create'));
         $responseCreate->assertRedirect(route('tasks.index'));
@@ -185,7 +197,7 @@ class TaskControllerHttpTest extends TestCase
             'task_given_to' => 'PCOORD'
         ]));
 
-        session(['active_actor' => 'Employee']);
+        session(['active_actor' => 'FEVEN', 'active_role' => 'Employee']);
 
         $responseEdit = $this->get(route('tasks.edit', $task));
         $responseEdit->assertRedirect(route('tasks.index'));

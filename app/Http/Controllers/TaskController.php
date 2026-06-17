@@ -149,10 +149,6 @@ class TaskController extends Controller
     {
         $activeActor = session('active_actor', 'Infra Director');
 
-        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
-            return redirect()->route('tasks.index')->with('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
-        }
-
         if (ActorSession::isEmployee() && !$this->canModifyTask($task, $activeActor)) {
             return redirect()->route('tasks.index')->with('error', 'You are only authorized to edit tasks assigned to you.');
         }
@@ -171,10 +167,6 @@ class TaskController extends Controller
     public function update(TaskRequest $request, Task $task)
     {
         $activeActor = session('active_actor', 'Infra Director');
-
-        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
-            return redirect()->route('tasks.index')->with('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
-        }
 
         if (ActorSession::isEmployee() && !$this->canModifyTask($task, $activeActor)) {
             return redirect()->route('tasks.index')->with('error', 'You are only authorized to edit tasks assigned to you.');
@@ -238,10 +230,6 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
-        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
-            return redirect()->route('tasks.index')->with('error', 'Original creator cannot delete tasks after they are assigned to an employee.');
-        }
-
         if (!ActorSession::canManageTasks()) {
             return redirect()->route('tasks.index')->with('error', 'You are not authorized to delete this task.');
         }
