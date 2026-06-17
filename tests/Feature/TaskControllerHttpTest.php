@@ -195,4 +195,29 @@ class TaskControllerHttpTest extends TestCase
         $responseUpdate->assertRedirect(route('tasks.index'));
         $responseUpdate->assertSessionHas('error', 'You are only authorized to edit tasks assigned to you.');
     }
+
+    public function test_supplier_is_created_on_the_fly_when_storing_and_updating_task(): void
+    {
+        $this->assertDatabaseMissing('suppliers', ['name' => 'Brand New Supplier']);
+
+        // Create task with new supplier
+        $payload = $this->validTaskPayload([
+            'supplier_name' => 'Brand New Supplier'
+        ]);
+        $response = $this->post(route('tasks.store'), $payload);
+        $response->assertRedirect(route('tasks.index'));
+
+        $this->assertDatabaseHas('suppliers', ['name' => 'Brand New Supplier']);
+
+        // Update task with another new supplier
+        $task = Task::where('supplier_name', 'Brand New Supplier')->firstOrFail();
+        
+        $this->assertDatabaseMissing('suppliers', ['name' => 'Second New Supplier']);
+        
+        $payload['supplier_name'] = 'Second New Supplier';
+        $responseUpdate = $this->put(route('tasks.update', $task), $payload);
+        $responseUpdate->assertRedirect(route('tasks.index'));
+
+        $this->assertDatabaseHas('suppliers', ['name' => 'Second New Supplier']);
+    }
 }

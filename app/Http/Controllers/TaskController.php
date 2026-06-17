@@ -121,6 +121,10 @@ class TaskController extends Controller
         $data['start_date'] = $data['start_date'] ?? now()->toDateString();
         $data['responsible_department'] = $data['responsible_department'] ?? 'Not Assigned';
 
+        if (!empty($data['supplier_name'])) {
+            \App\Models\Supplier::firstOrCreate(['name' => trim($data['supplier_name'])]);
+        }
+
         $task = Task::create($data);
 
         // Trigger Notification
@@ -144,6 +148,15 @@ class TaskController extends Controller
     public function edit(Task $task)
     {
         $activeActor = session('active_actor', 'Infra Director');
+
+        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
+            return redirect()->route('tasks.index')->with('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
+        }
+
+        if (ActorSession::isEmployee() && !$this->canModifyTask($task, $activeActor)) {
+            return redirect()->route('tasks.index')->with('error', 'You are only authorized to edit tasks assigned to you.');
+        }
+
         if (!$this->canModifyTask($task, $activeActor)) {
             return redirect()->route('tasks.index')->with('error', 'You are not authorized to edit this task.');
         }
@@ -158,6 +171,15 @@ class TaskController extends Controller
     public function update(TaskRequest $request, Task $task)
     {
         $activeActor = session('active_actor', 'Infra Director');
+
+        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
+            return redirect()->route('tasks.index')->with('error', 'Original creator cannot edit tasks after they are assigned to an employee.');
+        }
+
+        if (ActorSession::isEmployee() && !$this->canModifyTask($task, $activeActor)) {
+            return redirect()->route('tasks.index')->with('error', 'You are only authorized to edit tasks assigned to you.');
+        }
+
         if (!$this->canModifyTask($task, $activeActor)) {
             return redirect()->route('tasks.index')->with('error', 'You are not authorized to edit this task.');
         }
@@ -167,7 +189,12 @@ class TaskController extends Controller
         $oldPriority = $task->priority;
         $oldAssignee = $task->task_given_to;
 
-        $task->update($request->validated());
+        $data = $request->validated();
+        if (!empty($data['supplier_name'])) {
+            \App\Models\Supplier::firstOrCreate(['name' => trim($data['supplier_name'])]);
+        }
+
+        $task->update($data);
 
         // Construct update notification message
         $changes = [];
@@ -211,6 +238,10 @@ class TaskController extends Controller
      */
     public function destroy(Task $task)
     {
+        if (ActorSession::canManageTasks() && ActorSession::isTaskAssignee($task->task_given_to)) {
+            return redirect()->route('tasks.index')->with('error', 'Original creator cannot delete tasks after they are assigned to an employee.');
+        }
+
         if (!ActorSession::canManageTasks()) {
             return redirect()->route('tasks.index')->with('error', 'You are not authorized to delete this task.');
         }

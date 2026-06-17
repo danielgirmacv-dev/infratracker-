@@ -55,13 +55,16 @@
 
         <div>
             <label for="supplier_name" class="form-label">Supplier Name</label>
-            <select id="supplier_name" name="supplier_name"
+            <input id="supplier_name" name="supplier_name" list="suppliers_list"
+                type="text"
+                placeholder="Enter or select supplier..."
+                value="{{ old('supplier_name', $t?->supplier_name) }}"
                 class="form-input @error('supplier_name') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
-                <option value="">Select supplier…</option>
+            <datalist id="suppliers_list">
                 @foreach(\App\Models\Supplier::orderBy('name')->pluck('name') as $sname)
-                    <option value="{{ $sname }}" @selected(old('supplier_name', $t?->supplier_name) === $sname)>{{ $sname }}</option>
+                    <option value="{{ $sname }}">
                 @endforeach
-            </select>
+            </datalist>
             @if(($activeRole ?? '') === 'Employee')
                 <input type="hidden" name="supplier_name" value="{{ old('supplier_name', $t?->supplier_name) }}">
             @endif
