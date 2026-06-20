@@ -132,6 +132,7 @@
             </a>
             @endif
 
+            @if(in_array($activeRole ?? '', ['Infra Director', 'Coordinator', 'Coordinator Assistance']))
             <p class="nav-section-label mt-3">Master data</p>
 
             {{-- Projects --}}
@@ -166,6 +167,7 @@
                 </svg>
                 Add Department
             </a>
+            @endif
 
             <p class="nav-section-label mt-3">System</p>
 

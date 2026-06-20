@@ -309,4 +309,21 @@ class ActorNotificationTest extends TestCase
             'email' => 'newemp@example.com',
         ]);
     }
+
+    public function test_manager_cannot_access_or_modify_master_data(): void
+    {
+        session(['active_actor' => 'Project Manager', 'active_role' => 'Project Manager']);
+
+        $this->get(route('locations.index'))->assertStatus(403);
+        $this->post(route('locations.store'), ['name' => 'FAIL'])->assertStatus(403);
+
+        $this->get(route('departments.index'))->assertStatus(403);
+        $this->post(route('departments.store'), ['name' => 'FAIL'])->assertStatus(403);
+
+        $this->get(route('projects.index'))->assertStatus(403);
+        $this->post(route('projects.store'), ['name' => 'FAIL'])->assertStatus(403);
+
+        $this->get(route('suppliers.index'))->assertStatus(403);
+        $this->post(route('suppliers.store'), ['name' => 'FAIL'])->assertStatus(403);
+    }
 }
