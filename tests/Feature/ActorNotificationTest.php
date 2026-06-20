@@ -74,6 +74,18 @@ class ActorNotificationTest extends TestCase
         $response->assertSessionHas('active_role', 'Project Manager');
     }
 
+    public function test_actor_login_with_email_authenticates_successfully(): void
+    {
+        $response = $this->post(route('login'), [
+            'email' => 'pcoord@infratracker.local',
+            'password' => 'manager123',
+        ]);
+
+        $response->assertRedirect(route('dashboard'));
+        $response->assertSessionHas('active_actor', 'PCOORD');
+        $response->assertSessionHas('active_role', 'Project Manager');
+    }
+
     public function test_actor_login_with_invalid_credentials_returns_errors(): void
     {
         $response = $this->post(route('login'), [
@@ -203,5 +215,43 @@ class ActorNotificationTest extends TestCase
         // Assert manager's or director's flags are unaffected unless they were the creators
         $this->assertFalse($notifications[0]->read_by_manager);
         $this->assertFalse($notifications[1]->read_by_director);
+    }
+
+    public function test_director_can_create_manager_with_custom_email(): void
+    {
+        session(['active_actor' => 'Infra Director', 'active_role' => 'Infra Director']);
+
+        $response = $this->post(route('managers.store'), [
+            'name' => 'NEWMANAGER',
+            'email' => 'custom_manager@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('managers', ['name' => 'NEWMANAGER']);
+        $this->assertDatabaseHas('users', [
+            'name' => 'NEWMANAGER',
+            'email' => 'custom_manager@example.com',
+        ]);
+    }
+
+    public function test_director_can_create_employee_with_custom_email(): void
+    {
+        session(['active_actor' => 'Infra Director', 'active_role' => 'Infra Director']);
+
+        $response = $this->post(route('employees.store'), [
+            'name' => 'NEWEMPLOYEE',
+            'email' => 'custom_employee@example.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('employees', ['name' => 'NEWEMPLOYEE']);
+        $this->assertDatabaseHas('users', [
+            'name' => 'NEWEMPLOYEE',
+            'email' => 'custom_employee@example.com',
+        ]);
     }
 }

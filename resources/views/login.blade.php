@@ -112,16 +112,16 @@
         <form method="POST" action="{{ url('/login') }}" id="login-form">
             @csrf
             <div class="form-group">
-                <label for="email" class="form-label">Email Address</label>
+                <label for="email" class="form-label">Username or Email Address</label>
                 <input
-                    type="email"
+                    type="text"
                     id="email"
                     name="email"
                     class="form-input"
                     value="{{ old('email') }}"
-                    placeholder="Enter your email address"
+                    placeholder="Enter your username or email address"
                     required
-                    autocomplete="email"
+                    autocomplete="username"
                     autofocus
                 >
                 @error('email') <p class="error-msg">{{ $message }}</p> @enderror

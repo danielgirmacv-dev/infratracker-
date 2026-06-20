@@ -31,6 +31,7 @@ class EmployeeController extends Controller
 
         $request->validate([
             'name' => 'required|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email',
             'password' => 'required|string|min:4|confirmed',
             'location_id' => 'nullable|exists:locations,id',
             'department_id' => 'nullable|exists:departments,id',
@@ -52,10 +53,12 @@ class EmployeeController extends Controller
 
         Employee::create(['name' => $name]);
 
+        $email = strtolower(trim($request->email));
+
         User::updateOrCreate(
             ['name' => $name],
             [
-                'email' => strtolower(str_replace(' ', '', $name)).'@infratracker.local',
+                'email' => $email,
                 'password' => $request->password,
                 'must_change_password' => true,
                 'location_id' => $request->location_id,
@@ -65,7 +68,7 @@ class EmployeeController extends Controller
 
         return redirect()->back()->with(
             'success',
-            "Employee {$name} added with login enabled. Share the password you set — they must change it after first login."
+            "Employee {$name} added with login enabled. They can log in using username: '{$name}' or email: '{$email}'. Share the password you set — they must change it after first login."
         );
     }
 

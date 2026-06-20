@@ -51,6 +51,16 @@
                         <p class="mt-1 text-[10px] text-slate-500 dark:text-slate-400">Stored in uppercase. Used at login and for task assignment.</p>
                     </div>
                     <div>
+                        <label for="email" class="form-label">Email Address <span class="text-red-600">*</span></label>
+                        <input id="email" type="email" name="email" required maxlength="255"
+                            value="{{ old('email') }}"
+                            placeholder="e.g. manager@example.com"
+                            class="form-input @error('email') error @enderror">
+                        @error('email')
+                            <p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>
+                        @enderror
+                    </div>
+                    <div>
                         <label for="password" class="form-label">Initial password <span class="text-red-600">*</span></label>
                         <input id="password" type="password" name="password" required minlength="4"
                             class="form-input @error('password') error @enderror">
@@ -112,7 +122,14 @@
                             @forelse ($managers as $idx => $manager)
                                 <tr>
                                     <td class="font-mono text-xs text-slate-400">{{ $idx + 1 }}</td>
-                                    <td class="font-bold text-slate-800 dark:text-slate-200">{{ $manager->name }}</td>
+                                    <td class="font-bold text-slate-800 dark:text-slate-200">
+                                        <div>{{ $manager->name }}</div>
+                                        <div class="text-[10px] font-normal text-slate-400 dark:text-slate-500">
+                                            @if(isset($usersByName[$manager->name]))
+                                                {{ $usersByName[$manager->name]->email }}
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="text-xs text-slate-500 dark:text-slate-400">
                                         @if(isset($usersByName[$manager->name]) && $usersByName[$manager->name]->location)
                                             {{ $usersByName[$manager->name]->location->name }}

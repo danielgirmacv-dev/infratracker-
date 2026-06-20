@@ -254,8 +254,10 @@ class TaskController extends Controller
      */
     public function login(Request $request, CloudflareTurnstile $turnstile)
     {
+        $loginKey = $request->has('username') ? 'username' : 'email';
+
         $rules = [
-            'email' => 'required|email|max:255',
+            $loginKey => 'required|string|max:255',
             'password' => 'required|string',
         ];
 
@@ -274,28 +276,46 @@ class TaskController extends Controller
                 ->withInput($request->except('password', 'cf-turnstile-response'));
         }
 
-        $email = strtolower(trim($request->input('email')));
+        $loginInput = trim($request->input($loginKey));
         $password = $request->input('password');
 
-        $user = \App\Models\User::where('email', $email)->first();
+        $user = null;
+        $email = null;
+
+        // Check if input is a valid email
+        if (filter_var($loginInput, FILTER_VALIDATE_EMAIL)) {
+            $email = strtolower($loginInput);
+            $user = \App\Models\User::where('email', $email)->first();
+        } else {
+            // Otherwise, treat as username (which is the 'name' column in users table)
+            $username = strtoupper($loginInput);
+            $user = \App\Models\User::where('name', $username)->first();
+            if ($user) {
+                $email = $user->email;
+            }
+        }
 
         // Auto-provision main actors if they don't exist
         if (!$user) {
-            if ($email === 'nebiyeluild@eeigconstruction.com') {
+            $checkVal = $email ?: strtoupper($loginInput);
+            if ($checkVal === 'nebiyeluild@eeigconstruction.com' || $checkVal === 'NEBIYELUIL') {
+                $email = 'nebiyeluild@eeigconstruction.com';
                 $user = \App\Models\User::create([
                     'name' => 'Nebiyeluil',
                     'email' => $email,
                     'password' => 'director123',
                     'must_change_password' => false,
                 ]);
-            } elseif ($email === 'biruky@eeigconstruction.com') {
+            } elseif ($checkVal === 'biruky@eeigconstruction.com' || $checkVal === 'BIRUK') {
+                $email = 'biruky@eeigconstruction.com';
                 $user = \App\Models\User::create([
                     'name' => 'Biruk',
                     'email' => $email,
                     'password' => 'coordinator123',
                     'must_change_password' => false,
                 ]);
-            } elseif ($email === 'fevena@eeigconstruction.com') {
+            } elseif ($checkVal === 'fevena@eeigconstruction.com' || $checkVal === 'FEVEN') {
+                $email = 'fevena@eeigconstruction.com';
                 $user = \App\Models\User::create([
                     'name' => 'Feven',
                     'email' => $email,
@@ -304,7 +324,7 @@ class TaskController extends Controller
                 ]);
             } else {
                 return back()
-                    ->withErrors(['email' => 'No account found with that email address. Ask your administrator to add you.'])
+                    ->withErrors([$loginKey => 'No account found with that email address or username. Ask your administrator to add you.'])
                     ->withInput($request->except('password'));
             }
         }
