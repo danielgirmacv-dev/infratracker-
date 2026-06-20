@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Models\Employee;
 use App\Models\Manager;
 use App\Models\Notification;
 use App\Models\Task;
@@ -252,6 +253,60 @@ class ActorNotificationTest extends TestCase
         $this->assertDatabaseHas('users', [
             'name' => 'NEWEMPLOYEE',
             'email' => 'custom_employee@example.com',
+        ]);
+    }
+
+    public function test_director_can_update_manager(): void
+    {
+        session(['active_actor' => 'Infra Director', 'active_role' => 'Infra Director']);
+
+        $manager = Manager::create(['name' => 'OLDMGR']);
+        $user = User::create([
+            'name' => 'OLDMGR',
+            'email' => 'oldmgr@example.com',
+            'password' => 'password123',
+            'must_change_password' => false,
+        ]);
+
+        $response = $this->put(route('managers.update', $manager), [
+            'name' => 'NEWMGR',
+            'email' => 'newmgr@example.com',
+            'password' => 'newpassword123',
+            'password_confirmation' => 'newpassword123',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('managers', ['name' => 'NEWMGR']);
+        $this->assertDatabaseMissing('managers', ['name' => 'OLDMGR']);
+        $this->assertDatabaseHas('users', [
+            'name' => 'NEWMGR',
+            'email' => 'newmgr@example.com',
+        ]);
+    }
+
+    public function test_director_can_update_employee(): void
+    {
+        session(['active_actor' => 'Infra Director', 'active_role' => 'Infra Director']);
+
+        $employee = Employee::create(['name' => 'OLDEMP']);
+        $user = User::create([
+            'name' => 'OLDEMP',
+            'email' => 'oldemp@example.com',
+            'password' => 'password123',
+            'must_change_password' => false,
+        ]);
+
+        $response = $this->put(route('employees.update', $employee), [
+            'name' => 'NEWEMP',
+            'email' => 'newemp@example.com',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('employees', ['name' => 'NEWEMP']);
+        $this->assertDatabaseMissing('employees', ['name' => 'OLDEMP']);
+        $this->assertDatabaseHas('users', [
+            'name' => 'NEWEMP',
+            'email' => 'newemp@example.com',
         ]);
     }
 }

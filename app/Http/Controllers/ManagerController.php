@@ -85,6 +85,56 @@ class ManagerController extends Controller
         return redirect()->back()->with('success', "Manager {$manager->name} removed.");
     }
 
+    public function update(Request $request, Manager $manager)
+    {
+        $this->ensureDirector();
+
+        $user = User::where('name', $manager->name)->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:4|confirmed',
+            'location_id' => 'nullable|exists:locations,id',
+            'department_id' => 'nullable|exists:departments,id',
+        ]);
+
+        $oldName = $manager->name;
+        $newName = Manager::normalizeName($request->name);
+
+        if (in_array($newName, ['INFRA DIRECTOR', 'PROJECT MANAGER', 'DIRECTOR', 'COORDINATOR'], true)) {
+            return back()->withErrors(['name' => 'This name is reserved for system roles.'])->withInput();
+        }
+
+        if ($newName !== $oldName && Manager::where('name', $newName)->exists()) {
+            return back()->withErrors(['name' => 'A manager with this name already exists.'])->withInput();
+        }
+
+        if ($newName !== $oldName) {
+            Task::where('task_given_to', $oldName)->update(['task_given_to' => $newName]);
+            Task::where('task_given_by', $oldName)->update(['task_given_by' => $newName]);
+            \App\Models\Notification::where('actor', $oldName)->update(['actor' => $newName]);
+            \App\Models\Notification::where('target_actor', $oldName)->update(['target_actor' => $newName]);
+        }
+
+        $manager->update(['name' => $newName]);
+
+        $userData = [
+            'name' => $newName,
+            'email' => strtolower(trim($request->email)),
+            'location_id' => $request->location_id,
+            'department_id' => $request->department_id,
+        ];
+
+        if ($request->filled('password')) {
+            $userData['password'] = $request->password;
+        }
+
+        $user->update($userData);
+
+        return redirect()->back()->with('success', "Manager updated successfully.");
+    }
+
     private function ensureDirector(): void
     {
         if (!ActorSession::isDirector()) {

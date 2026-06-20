@@ -97,6 +97,60 @@ class EmployeeController extends Controller
         return redirect()->back()->with('success', "Employee {$employee->name} removed.");
     }
 
+    public function update(Request $request, Employee $employee)
+    {
+        $this->ensureCanManageEmployees();
+
+        $user = User::where('name', $employee->name)->firstOrFail();
+
+        $request->validate([
+            'name' => 'required|string|max:100',
+            'email' => 'required|email|max:255|unique:users,email,' . $user->id,
+            'password' => 'nullable|string|min:4|confirmed',
+            'location_id' => 'nullable|exists:locations,id',
+            'department_id' => 'nullable|exists:departments,id',
+        ]);
+
+        $oldName = $employee->name;
+        $newName = Employee::normalizeName($request->name);
+
+        if (in_array($newName, ['INFRA DIRECTOR', 'PROJECT MANAGER', 'DIRECTOR', 'COORDINATOR'], true)) {
+            return back()->withErrors(['name' => 'This name is reserved for system roles.'])->withInput();
+        }
+
+        if ($newName !== $oldName && Employee::where('name', $newName)->exists()) {
+            return back()->withErrors(['name' => 'An employee with this name already exists.'])->withInput();
+        }
+
+        if ($newName !== $oldName && Manager::where('name', $newName)->exists()) {
+            return back()->withErrors(['name' => 'This name is already used by a manager.'])->withInput();
+        }
+
+        if ($newName !== $oldName) {
+            Task::where('task_given_to', $oldName)->update(['task_given_to' => $newName]);
+            Task::where('task_given_by', $oldName)->update(['task_given_by' => $newName]);
+            \App\Models\Notification::where('actor', $oldName)->update(['actor' => $newName]);
+            \App\Models\Notification::where('target_actor', $oldName)->update(['target_actor' => $newName]);
+        }
+
+        $employee->update(['name' => $newName]);
+
+        $userData = [
+            'name' => $newName,
+            'email' => strtolower(trim($request->email)),
+            'location_id' => $request->location_id,
+            'department_id' => $request->department_id,
+        ];
+
+        if ($request->filled('password')) {
+            $userData['password'] = $request->password;
+        }
+
+        $user->update($userData);
+
+        return redirect()->back()->with('success', "Employee updated successfully.");
+    }
+
     private function ensureCanManageEmployees(): void
     {
         if (!ActorSession::canManageEmployees()) {

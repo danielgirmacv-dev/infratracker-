@@ -33,10 +33,12 @@ Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->nam
 
 Route::get('/managers', [ManagerController::class, 'index'])->name('managers.index');
 Route::post('/managers', [ManagerController::class, 'store'])->name('managers.store');
+Route::put('/managers/{manager}', [ManagerController::class, 'update'])->name('managers.update');
 Route::delete('/managers/{manager}', [ManagerController::class, 'destroy'])->name('managers.destroy');
 
 Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
 Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
+Route::put('/employees/{employee}', [EmployeeController::class, 'update'])->name('employees.update');
 Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
 
 Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');

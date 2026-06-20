@@ -9,7 +9,7 @@
 @endsection
 
 @section('content')
-<div class="space-y-6 animate-slide-up" x-data="{ deleteModalOpen: false, deleteUrl: '', deleteLabel: '' }">
+<div class="space-y-6 animate-slide-up" x-data="{ deleteModalOpen: false, deleteUrl: '', deleteLabel: '', editModalOpen: false, editUrl: '', editName: '', editEmail: '', editLocationId: '', editDepartmentId: '' }">
     @if(session('success'))
     <div class="flex items-center gap-3 rounded-lg border border-emerald-500/20 bg-emerald-100 dark:bg-emerald-500/10 px-4 py-3 text-sm font-medium text-emerald-600 dark:text-emerald-300" x-data x-init="setTimeout(() => $el.remove(), 5000)">
         <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z" /></svg>
@@ -159,6 +159,14 @@
                                     <td class="text-right">
                                         <button
                                             type="button"
+                                            class="inline-flex rounded-lg p-1.5 text-brand-600 dark:text-brand-400 transition hover:bg-brand-100 dark:hover:bg-brand-500/10 mr-1"
+                                            title="Edit"
+                                            @click="editModalOpen=true; editUrl=@js(route('managers.update', $manager)); editName=@js($manager->name); editEmail=@js(isset($usersByName[$manager->name]) ? $usersByName[$manager->name]->email : ''); editLocationId=@js(isset($usersByName[$manager->name]) ? $usersByName[$manager->name]->location_id : ''); editDepartmentId=@js(isset($usersByName[$manager->name]) ? $usersByName[$manager->name]->department_id : '')"
+                                        >
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L6.83 20.013a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897L16.863 4.487Zm0 0L19.5 7.125" /></svg>
+                                        </button>
+                                        <button
+                                            type="button"
                                             class="inline-flex rounded-lg p-1.5 text-red-600 dark:text-red-400 transition hover:bg-red-100 dark:hover:bg-red-500/10"
                                             title="Delete"
                                             @click="deleteModalOpen=true; deleteUrl=@js(route('managers.destroy', $manager)); deleteLabel=@js($manager->name)"
@@ -195,6 +203,66 @@
                     <button type="submit" class="btn-danger">Delete</button>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <div x-show="editModalOpen" x-cloak x-transition.opacity class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 overflow-y-auto">
+        <div class="card w-full max-w-md overflow-hidden shadow-2xl my-8" @click.outside="editModalOpen = false">
+            <div class="border-b border-slate-200 dark:border-white/5 px-6 py-4">
+                <h2 class="text-base font-semibold text-slate-800 dark:text-slate-200">Edit Manager</h2>
+            </div>
+            <form method="post" :action="editUrl" class="space-y-4 px-6 py-5">
+                @csrf
+                @method('PUT')
+                <div>
+                    <label for="edit_name" class="form-label">Manager name <span class="text-red-600">*</span></label>
+                    <input id="edit_name" type="text" name="name" required maxlength="100"
+                        x-model="editName"
+                        placeholder="e.g. JOHN"
+                        class="form-input uppercase">
+                </div>
+                <div>
+                    <label for="edit_email" class="form-label">Email Address <span class="text-red-600">*</span></label>
+                    <input id="edit_email" type="email" name="email" required maxlength="255"
+                        x-model="editEmail"
+                        placeholder="e.g. manager@example.com"
+                        class="form-input">
+                </div>
+                <div>
+                    <label for="edit_password" class="form-label">New password <span class="text-xs text-slate-400 font-normal">(leave blank to keep current)</span></label>
+                    <input id="edit_password" type="password" name="password" minlength="4"
+                        placeholder="Enter new password"
+                        class="form-input">
+                </div>
+                <div>
+                    <label for="edit_password_confirmation" class="form-label">Confirm new password</label>
+                    <input id="edit_password_confirmation" type="password" name="password_confirmation" minlength="4"
+                        placeholder="Confirm new password"
+                        class="form-input">
+                </div>
+                <div>
+                    <label for="edit_location_id" class="form-label">Location</label>
+                    <select id="edit_location_id" name="location_id" class="form-input" x-model="editLocationId">
+                        <option value="">None / Select Location</option>
+                        @foreach($locations as $location)
+                            <option value="{{ $location->id }}">{{ $location->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label for="edit_department_id" class="form-label">Department</label>
+                    <select id="edit_department_id" name="department_id" class="form-input" x-model="editDepartmentId">
+                        <option value="">None / Select Department</option>
+                        @foreach($departments as $department)
+                            <option value="{{ $department->id }}">{{ $department->name }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                <div class="flex justify-end gap-2 border-t border-slate-200 dark:border-white/5 pt-4">
+                    <button type="button" class="btn-ghost" @click="editModalOpen = false">Cancel</button>
+                    <button type="submit" class="btn-primary">Save Changes</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
