@@ -59,7 +59,7 @@ class ActorContext
                 }
             })
             ->where(function ($query) use ($activeRole) {
-                if ($activeRole === 'Infra Director') {
+                if (in_array($activeRole, ['Infra Director', 'Coordinator'], true)) {
                     $query->where('read_by_director', false);
                 } elseif ($activeRole === 'Project Manager') {
                     $query->where('read_by_manager', false);

@@ -22,6 +22,8 @@ class User extends Authenticatable
         'email',
         'password',
         'must_change_password',
+        'location_id',
+        'department_id',
     ];
 
     /**
@@ -46,5 +48,15 @@ class User extends Authenticatable
             'password' => 'hashed',
             'must_change_password' => 'boolean',
         ];
+    }
+
+    public function location()
+    {
+        return $this->belongsTo(Location::class);
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }

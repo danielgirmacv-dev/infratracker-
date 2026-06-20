@@ -59,46 +59,7 @@
         .form-input:focus { border-color: rgba(28,180,201,.4); box-shadow: 0 0 0 3px rgba(28,180,201,.1); }
         .form-input::placeholder { color: #94a3b8; }
 
-        .username-wrap { position: relative; }
-        .actor-dropdown {
-            display: none;
-            position: absolute;
-            left: 0; right: 0; top: calc(100% + .35rem);
-            max-height: 240px; overflow-y: auto;
-            background: #fff;
-            border: 1px solid rgba(15,23,42,.1);
-            border-radius: 14px;
-            box-shadow: 0 12px 32px rgba(15,23,42,.12);
-            z-index: 20;
-        }
-        .actor-dropdown.open { display: block; }
-        .actor-dropdown-label {
-            padding: .5rem .85rem .25rem;
-            font-size: .65rem; font-weight: 700; text-transform: uppercase;
-            letter-spacing: .08em; color: #94a3b8;
-        }
-        .actor-option {
-            display: flex; align-items: center; gap: .75rem;
-            width: 100%; padding: .65rem .85rem; border: none; background: none;
-            text-align: left; cursor: pointer; font-family: inherit;
-            transition: background .15s;
-        }
-        .actor-option:hover, .actor-option.active {
-            background: rgba(28,180,201,.08);
-        }
-        .actor-avatar {
-            width: 36px; height: 36px; border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: .75rem; flex-shrink: 0;
-        }
-        .actor-avatar.director { background: rgba(28,180,201,.15); color: #0e7490; }
-        .actor-avatar.manager { background: rgba(11,94,111,.12); color: #0b5e6f; }
-        .actor-avatar.employee { background: rgba(15,23,42,.06); color: #334155; }
-        .actor-option-name { font-size: .82rem; font-weight: 700; color: #1e293b; }
-        .actor-option-hint { font-size: .68rem; color: #64748b; margin-top: .1rem; }
-        .actor-empty {
-            padding: 1rem; text-align: center; font-size: .75rem; color: #94a3b8;
-        }
+
 
         .password-wrap { position: relative; }
         .password-wrap .form-input { padding-right: 2.75rem; }
@@ -151,42 +112,19 @@
         <form method="POST" action="{{ url('/login') }}" id="login-form">
             @csrf
             <div class="form-group">
-                <label for="username" class="form-label">Username</label>
-                <div class="username-wrap" id="username-wrap">
-                    <input
-                        type="text"
-                        id="username"
-                        name="username"
-                        class="form-input"
-                        value="{{ old('username') }}"
-                        placeholder="Select or type your username"
-                        required
-                        autocomplete="username"
-                        autofocus
-                    >
-                    <div class="actor-dropdown" id="actor-dropdown" role="listbox" aria-label="Select account">
-                        <p class="actor-dropdown-label">Choose your account</p>
-                        <div id="actor-list">
-                            @foreach($actors as $actor)
-                                <button
-                                    type="button"
-                                    class="actor-option"
-                                    data-name="{{ $actor['name'] }}"
-                                    data-label="{{ $actor['label'] }}"
-                                    role="option"
-                                >
-                                    <span class="actor-avatar {{ $actor['tone'] }}">{{ $actor['initials'] }}</span>
-                                    <span>
-                                        <div class="actor-option-name">{{ $actor['label'] }}</div>
-                                        <div class="actor-option-hint">{{ $actor['hint'] }}</div>
-                                    </span>
-                                </button>
-                            @endforeach
-                        </div>
-                        <p class="actor-empty" id="actor-empty" style="display: none;">No matching accounts</p>
-                    </div>
-                </div>
-                @error('username') <p class="error-msg">{{ $message }}</p> @enderror
+                <label for="email" class="form-label">Email Address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    class="form-input"
+                    value="{{ old('email') }}"
+                    placeholder="Enter your email address"
+                    required
+                    autocomplete="email"
+                    autofocus
+                >
+                @error('email') <p class="error-msg">{{ $message }}</p> @enderror
             </div>
 
             <div class="form-group">
@@ -234,53 +172,7 @@
 
     <script>
         (function () {
-            var username = document.getElementById('username');
-            var dropdown = document.getElementById('actor-dropdown');
-            var wrap = document.getElementById('username-wrap');
-            var options = Array.from(document.querySelectorAll('.actor-option'));
-            var empty = document.getElementById('actor-empty');
             var password = document.getElementById('password');
-
-            function openDropdown() {
-                dropdown.classList.add('open');
-                filterOptions();
-            }
-
-            function closeDropdown() {
-                dropdown.classList.remove('open');
-            }
-
-            function filterOptions() {
-                var q = username.value.trim().toLowerCase();
-                var visible = 0;
-                options.forEach(function (btn) {
-                    var name = (btn.dataset.name || '').toLowerCase();
-                    var label = (btn.dataset.label || '').toLowerCase();
-                    var match = !q || name.includes(q) || label.includes(q);
-                    btn.style.display = match ? 'flex' : 'none';
-                    if (match) visible++;
-                });
-                empty.style.display = visible ? 'none' : 'block';
-            }
-
-            username.addEventListener('focus', openDropdown);
-            username.addEventListener('click', openDropdown);
-            username.addEventListener('input', function () {
-                openDropdown();
-                filterOptions();
-            });
-
-            options.forEach(function (btn) {
-                btn.addEventListener('click', function () {
-                    username.value = btn.dataset.name;
-                    closeDropdown();
-                    password.focus();
-                });
-            });
-
-            document.addEventListener('click', function (e) {
-                if (!wrap.contains(e.target)) closeDropdown();
-            });
 
             var toggle = document.getElementById('password-toggle');
             var iconEye = document.getElementById('icon-eye');

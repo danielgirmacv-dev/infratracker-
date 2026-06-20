@@ -63,6 +63,24 @@
                         <input id="password_confirmation" type="password" name="password_confirmation" required minlength="4"
                             class="form-input">
                     </div>
+                    <div>
+                        <label for="location_id" class="form-label">Location</label>
+                        <select id="location_id" name="location_id" class="form-input">
+                            <option value="">None / Select Location</option>
+                            @foreach($locations as $location)
+                                <option value="{{ $location->id }}" @selected(old('location_id') == $location->id)>{{ $location->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label for="department_id" class="form-label">Department</label>
+                        <select id="department_id" name="department_id" class="form-input">
+                            <option value="">None / Select Department</option>
+                            @foreach($departments as $department)
+                                <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <button type="submit" class="btn-primary w-full justify-center">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" /></svg>
                         Add Manager
@@ -83,6 +101,8 @@
                             <tr>
                                 <th>#</th>
                                 <th>Name</th>
+                                <th>Location</th>
+                                <th>Department</th>
                                 <th>Login</th>
                                 <th>Created</th>
                                 <th class="text-right">Actions</th>
@@ -93,6 +113,20 @@
                                 <tr>
                                     <td class="font-mono text-xs text-slate-400">{{ $idx + 1 }}</td>
                                     <td class="font-bold text-slate-800 dark:text-slate-200">{{ $manager->name }}</td>
+                                    <td class="text-xs text-slate-500 dark:text-slate-400">
+                                        @if(isset($usersByName[$manager->name]) && $usersByName[$manager->name]->location)
+                                            {{ $usersByName[$manager->name]->location->name }}
+                                        @else
+                                            <span class="text-slate-400 dark:text-slate-600">—</span>
+                                        @endif
+                                    </td>
+                                    <td class="text-xs text-slate-500 dark:text-slate-400">
+                                        @if(isset($usersByName[$manager->name]) && $usersByName[$manager->name]->department)
+                                            {{ $usersByName[$manager->name]->department->name }}
+                                        @else
+                                            <span class="text-slate-400 dark:text-slate-600">—</span>
+                                        @endif
+                                    </td>
                                     <td class="text-xs text-slate-500 dark:text-slate-400">
                                         @if(isset($usersByName[$manager->name]))
                                             @if($usersByName[$manager->name]->must_change_password)
@@ -118,7 +152,7 @@
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="py-12 text-center text-slate-500">No managers yet. Add one to delegate employee management.</td>
+                                    <td colspan="7" class="py-12 text-center text-slate-500">No managers yet. Add one to delegate employee management.</td>
                                 </tr>
                             @endforelse
                         </tbody>

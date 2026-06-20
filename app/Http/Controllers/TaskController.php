@@ -134,7 +134,7 @@ class TaskController extends Controller
             'type' => 'created',
             'message' => "{$activeActor} assigned task '{$task->project_name}' to {$task->task_given_to}.",
             'target_actor' => $task->task_given_to,
-            'read_by_director' => $activeActor === 'Infra Director',
+            'read_by_director' => in_array($activeActor, ['Infra Director', 'Coordinator'], true),
             'read_by_manager' => ActorSession::isManager(),
             'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
@@ -217,7 +217,7 @@ class TaskController extends Controller
             'type' => 'updated',
             'message' => $message,
             'target_actor' => 'all',
-            'read_by_director' => $activeActor === 'Infra Director',
+            'read_by_director' => in_array($activeActor, ['Infra Director', 'Coordinator'], true),
             'read_by_manager' => ActorSession::isManager(),
             'read_by_employee' => ActorSession::isTaskAssignee($task->task_given_to),
         ]);
@@ -244,28 +244,8 @@ class TaskController extends Controller
      */
     public function showLogin()
     {
-        $employees = Employee::orderBy('name')->get();
-        $managers = Manager::orderBy('name')->get();
-
-        $actors = collect([
-            ['name' => 'Infra Director', 'label' => 'Infra Director', 'hint' => 'Full oversight & task delegation', 'initials' => 'ID', 'tone' => 'director'],
-        ])->merge($managers->map(fn ($m) => [
-            'name' => $m->name,
-            'label' => $m->name,
-            'hint' => 'Coordinate projects & manage employees',
-            'initials' => strtoupper(substr($m->name, 0, 2)),
-            'tone' => 'manager',
-        ]))->merge($employees->map(fn ($e) => [
-            'name' => $e->name,
-            'label' => $e->name,
-            'hint' => 'Execute tasks & report progress',
-            'initials' => strtoupper(substr($e->name, 0, 2)),
-            'tone' => 'employee',
-        ]));
-
         return view('login', [
             'turnstileSiteKey' => config('services.turnstile.site_key'),
-            'actors' => $actors,
         ]);
     }
 
@@ -275,7 +255,7 @@ class TaskController extends Controller
     public function login(Request $request, CloudflareTurnstile $turnstile)
     {
         $rules = [
-            'username' => 'required|string|max:100',
+            'email' => 'required|email|max:255',
             'password' => 'required|string',
         ];
 
@@ -294,37 +274,38 @@ class TaskController extends Controller
                 ->withInput($request->except('password', 'cf-turnstile-response'));
         }
 
-        $actor = $this->resolveLoginActor($request->input('username'));
-
-        if (!$actor) {
-            return back()
-                ->withErrors(['username' => 'No account found with that username.'])
-                ->withInput($request->except('password'));
-        }
-
+        $email = strtolower(trim($request->input('email')));
         $password = $request->input('password');
-        $role = ActorSession::loginRoleForActor($actor);
 
-        if ($actor === 'Infra Director') {
-            $user = \App\Models\User::firstOrCreate(
-                ['name' => $actor],
-                [
-                    'email' => 'infradirector@infratracker.local',
+        $user = \App\Models\User::where('email', $email)->first();
+
+        // Auto-provision main actors if they don't exist
+        if (!$user) {
+            if ($email === 'nebiyeluild@eeigconstruction.com') {
+                $user = \App\Models\User::create([
+                    'name' => 'Nebiyeluil',
+                    'email' => $email,
                     'password' => 'director123',
                     'must_change_password' => false,
-                ]
-            );
-        } else {
-            $user = \App\Models\User::where('name', $actor)->first();
-
-            if (!$user) {
-                $hint = Manager::isManagerName($actor) || Employee::isEmployeeName($actor)
-                    ? 'Ask the Director or your Manager to add you with a password.'
-                    : 'No login account for this user. Ask the Director to add you with a password.';
-
-                return back()->withErrors([
-                    'username' => $hint,
-                ])->withInput($request->except('password'));
+                ]);
+            } elseif ($email === 'biruky@eeigconstruction.com') {
+                $user = \App\Models\User::create([
+                    'name' => 'Biruk',
+                    'email' => $email,
+                    'password' => 'coordinator123',
+                    'must_change_password' => false,
+                ]);
+            } elseif ($email === 'fevena@eeigconstruction.com') {
+                $user = \App\Models\User::create([
+                    'name' => 'Feven',
+                    'email' => $email,
+                    'password' => 'coordinator123',
+                    'must_change_password' => false,
+                ]);
+            } else {
+                return back()
+                    ->withErrors(['email' => 'No account found with that email address. Ask your administrator to add you.'])
+                    ->withInput($request->except('password'));
             }
         }
 
@@ -332,57 +313,25 @@ class TaskController extends Controller
             return back()->withErrors(['password' => 'Invalid credentials. Please try again.'])->withInput($request->except('password'));
         }
 
+        if ($email === 'nebiyeluild@eeigconstruction.com') {
+            $actor = 'Nebiyeluil';
+            $role = 'Infra Director';
+        } elseif ($email === 'biruky@eeigconstruction.com') {
+            $actor = 'Biruk';
+            $role = 'Coordinator';
+        } elseif ($email === 'fevena@eeigconstruction.com') {
+            $actor = 'Feven';
+            $role = 'Coordinator Assistance';
+        } else {
+            $actor = $user->name;
+            $role = ActorSession::loginRoleForActor($actor);
+        }
+
         $request->session()->regenerate();
         $request->session()->put('active_actor', $actor);
         $request->session()->put('active_role', $role);
 
         return redirect()->route('dashboard')->with('success', "Welcome back, {$actor}!");
-    }
-
-    private function resolveLoginActor(string $username): ?string
-    {
-        $input = trim($username);
-        if ($input === '') {
-            return null;
-        }
-
-        $normalized = strtolower($input);
-
-        if (in_array($normalized, ['infra director', 'director', 'id'], true)) {
-            return 'Infra Director';
-        }
-
-        if (\Illuminate\Support\Facades\Schema::hasTable('managers')) {
-            $manager = Manager::query()
-                ->whereRaw('UPPER(name) = ?', [Manager::normalizeName($input)])
-                ->first();
-
-            if ($manager) {
-                return $manager->name;
-            }
-        }
-
-        if (in_array($normalized, ['project manager', 'project cordinator', 'project coordinator', 'coordinator', 'manager', 'pc'], true)) {
-            $firstManager = Manager::query()->orderBy('name')->first();
-
-            return $firstManager?->name;
-        }
-
-        if (\Illuminate\Support\Facades\Schema::hasTable('employees')) {
-            $employee = Employee::query()
-                ->whereRaw('UPPER(name) = ?', [Employee::normalizeName($input)])
-                ->first();
-
-            if ($employee) {
-                return $employee->name;
-            }
-        }
-
-        $user = \App\Models\User::query()
-            ->whereRaw('UPPER(name) = ?', [strtoupper($input)])
-            ->first();
-
-        return $user?->name;
     }
 
     /**
@@ -414,7 +363,7 @@ class TaskController extends Controller
                 }
             });
 
-        if ($activeRole === 'Infra Director') {
+        if (in_array($activeRole, ['Infra Director', 'Coordinator'], true)) {
             $query->update(['read_by_director' => true]);
         } elseif ($activeRole === 'Project Manager') {
             $query->update(['read_by_manager' => true]);

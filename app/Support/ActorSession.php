@@ -19,7 +19,7 @@ class ActorSession
 
     public static function isDirector(): bool
     {
-        return self::role() === 'Infra Director';
+        return in_array(self::role(), ['Infra Director', 'Coordinator', 'Coordinator Assistance'], true);
     }
 
     public static function isManager(): bool
@@ -39,7 +39,7 @@ class ActorSession
 
     public static function canManageEmployees(): bool
     {
-        return self::isDirector() || self::isManager();
+        return self::isDirector();
     }
 
     public static function isTaskAssignee(string $assignee): bool
@@ -55,6 +55,14 @@ class ActorSession
     {
         if ($actor === 'Infra Director') {
             return 'Infra Director';
+        }
+
+        if ($actor === 'Coordinator') {
+            return 'Coordinator';
+        }
+
+        if ($actor === 'Coordinator Assistance') {
+            return 'Coordinator Assistance';
         }
 
         if ($actor === 'Project Manager' || Manager::isManagerName($actor)) {

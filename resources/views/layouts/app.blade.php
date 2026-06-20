@@ -113,7 +113,7 @@
                 @endif
             </a>
 
-            @if(($activeRole ?? '') === 'Infra Director')
+            @if(in_array($activeRole ?? '', ['Infra Director', 'Coordinator', 'Coordinator Assistance']))
             <a href="{{ route('managers.index') }}" class="nav-item {{ request()->routeIs('managers.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 19.128a9.38 9.38 0 0 0 2.625.372 9.337 9.337 0 0 0 4.121-.952 4.125 4.125 0 0 0-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 0 1 8.624 21c-2.331 0-4.512-.645-6.374-1.766m12.748 0c-.995.608-2.16 1.037-3.47 1.037-1.31 0-2.475-.429-3.47-1.037m12.748 0c.995-.608 2.16-1.037 3.47-1.037 1.31 0 2.475.429 3.47 1.037M9 9.75a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm6 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
@@ -122,7 +122,7 @@
             </a>
             @endif
 
-            @if(in_array($activeRole ?? '', ['Infra Director', 'Project Manager']))
+            @if(in_array($activeRole ?? '', ['Infra Director', 'Coordinator', 'Coordinator Assistance']))
             <a href="{{ route('employees.index') }}" class="nav-item {{ request()->routeIs('employees.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M18 7.5v3m0 0v3m0-3h3m-3 0h-3m-2.25-4.125a3.375 3.375 0 1 1-6.75 0 3.375 3.375 0 0 1 6.75 0ZM3 19.235v-.11a6.375 6.375 0 0 1 12.75 0v.109A12.318 12.318 0 0 1 9.374 21c-2.331 0-4.512-.645-6.374-1.766Z" />
@@ -142,11 +142,28 @@
             </a>
 
             {{-- Suppliers --}}
-            <a href="{{ route('suppliers.index') }}" class="nav-item {{ $suppliersActive ? 'active' : '' }}" @click="closeSidebarOnMobile()">
+            <a href="{{ route('suppliers.index') }}" class="nav-item {{ request()->routeIs('suppliers.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
                 <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 18.75a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h6m-9 0H3.375a1.125 1.125 0 0 1-1.125-1.125V14.25m17.25 4.5a1.5 1.5 0 0 1-3 0m3 0a1.5 1.5 0 0 0-3 0m3 0h1.125a1.125 1.125 0 0 0 1.125-1.125V9.75M8.25 13.875c0-1.125.67-2.16 1.714-2.616l5.625-2.41a3.375 3.375 0 0 1 4.662 3.102m-12 1.924h12.75" />
                 </svg>
                 Add Supplier Name
+            </a>
+
+            {{-- Locations --}}
+            <a href="{{ route('locations.index') }}" class="nav-item {{ request()->routeIs('locations.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 10.5a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 10.5c0 7.142-7.5 11.25-7.5 11.25S4.5 17.642 4.5 10.5a7.5 7.5 0 1 1 15 0Z" />
+                </svg>
+                Add Location
+            </a>
+
+            {{-- Departments --}}
+            <a href="{{ route('departments.index') }}" class="nav-item {{ request()->routeIs('departments.*') ? 'active' : '' }}" @click="closeSidebarOnMobile()">
+                <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" />
+                </svg>
+                Add Department
             </a>
 
             <p class="nav-section-label mt-3">System</p>
@@ -250,7 +267,7 @@
                                         @php
                                             $isUnread = false;
                                             if (isset($activeActor)) {
-                                                if (($activeRole ?? '') === 'Infra Director') {
+                                                if (in_array($activeRole ?? '', ['Infra Director', 'Coordinator', 'Coordinator Assistance'])) {
                                                     $isUnread = !$notification->read_by_director;
                                                 } elseif (($activeRole ?? '') === 'Project Manager') {
                                                     $isUnread = !$notification->read_by_manager;
@@ -305,7 +322,7 @@
                 {{-- Active Actor Badge --}}
                 @if(isset($activeActor))
                     <div class="topbar-action-item actor-chip shrink-0" title="{{ $activeActor }}">
-                        <span class="flex h-7 w-7 sm:h-6 sm:w-6 items-center justify-center rounded-lg text-[10px] font-bold {{ ($activeRole ?? '') === 'Infra Director' ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400' : (($activeRole ?? '') === 'Project Manager' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
+                        <span class="flex h-7 w-7 sm:h-6 sm:w-6 items-center justify-center rounded-lg text-[10px] font-bold {{ in_array($activeRole ?? '', ['Infra Director', 'Coordinator', 'Coordinator Assistance']) ? 'bg-brand-500/15 text-brand-600 dark:text-brand-400' : (($activeRole ?? '') === 'Project Manager' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-amber-500/15 text-amber-600 dark:text-amber-400') }}">
                             {{ substr($activeActor, 0, 1) }}
                         </span>
                         <span class="hidden sm:inline font-sans text-xs">{{ $activeActor }}</span>

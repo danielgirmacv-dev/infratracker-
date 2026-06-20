@@ -15,10 +15,12 @@ class ManagerController extends Controller
         $this->ensureDirector();
 
         $managers = Manager::orderBy('name')->get();
-        $usersByName = User::whereIn('name', $managers->pluck('name'))->get()->keyBy('name');
+        $usersByName = User::with(['location', 'department'])->whereIn('name', $managers->pluck('name'))->get()->keyBy('name');
         $totalTasks = Task::count();
+        $locations = \App\Models\Location::orderBy('name')->get();
+        $departments = \App\Models\Department::orderBy('name')->get();
 
-        return view('managers.index', compact('managers', 'usersByName', 'totalTasks'));
+        return view('managers.index', compact('managers', 'usersByName', 'totalTasks', 'locations', 'departments'));
     }
 
     public function store(Request $request)
@@ -28,6 +30,8 @@ class ManagerController extends Controller
         $request->validate([
             'name' => 'required|string|max:100',
             'password' => 'required|string|min:4|confirmed',
+            'location_id' => 'nullable|exists:locations,id',
+            'department_id' => 'nullable|exists:departments,id',
         ]);
 
         $name = Manager::normalizeName($request->name);
@@ -48,6 +52,8 @@ class ManagerController extends Controller
                 'email' => strtolower(str_replace(' ', '', $name)).'@infratracker.local',
                 'password' => $request->password,
                 'must_change_password' => true,
+                'location_id' => $request->location_id,
+                'department_id' => $request->department_id,
             ]
         );
 
@@ -79,7 +85,7 @@ class ManagerController extends Controller
     private function ensureDirector(): void
     {
         if (!ActorSession::isDirector()) {
-            abort(403, 'Only the Infra Director can manage managers.');
+            abort(403, 'Only the Infra Director or Coordinator can manage managers.');
         }
     }
 }

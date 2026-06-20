@@ -16,11 +16,13 @@ class EmployeeController extends Controller
         $this->ensureCanManageEmployees();
 
         $employees = Employee::orderBy('name')->get();
-        $usersByName = User::whereIn('name', $employees->pluck('name'))->get()->keyBy('name');
+        $usersByName = User::with(['location', 'department'])->whereIn('name', $employees->pluck('name'))->get()->keyBy('name');
         $totalTasks = Task::count();
         $canDelete = ActorSession::isDirector();
+        $locations = \App\Models\Location::orderBy('name')->get();
+        $departments = \App\Models\Department::orderBy('name')->get();
 
-        return view('employees.index', compact('employees', 'usersByName', 'totalTasks', 'canDelete'));
+        return view('employees.index', compact('employees', 'usersByName', 'totalTasks', 'canDelete', 'locations', 'departments'));
     }
 
     public function store(Request $request)
@@ -30,6 +32,8 @@ class EmployeeController extends Controller
         $request->validate([
             'name' => 'required|string|max:100',
             'password' => 'required|string|min:4|confirmed',
+            'location_id' => 'nullable|exists:locations,id',
+            'department_id' => 'nullable|exists:departments,id',
         ]);
 
         $name = Employee::normalizeName($request->name);
@@ -54,6 +58,8 @@ class EmployeeController extends Controller
                 'email' => strtolower(str_replace(' ', '', $name)).'@infratracker.local',
                 'password' => $request->password,
                 'must_change_password' => true,
+                'location_id' => $request->location_id,
+                'department_id' => $request->department_id,
             ]
         );
 
@@ -91,7 +97,7 @@ class EmployeeController extends Controller
     private function ensureCanManageEmployees(): void
     {
         if (!ActorSession::canManageEmployees()) {
-            abort(403, 'Only the Infra Director or a Manager can manage employees.');
+            abort(403, 'Only the Infra Director or Coordinator can manage employees.');
         }
     }
 }

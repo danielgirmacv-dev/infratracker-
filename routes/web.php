@@ -8,6 +8,8 @@ use App\Http\Controllers\ActivityController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\EmployeeController;
 use App\Http\Controllers\ManagerController;
+use App\Http\Controllers\LocationController;
+use App\Http\Controllers\DepartmentController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [TaskController::class, 'dashboard'])->name('dashboard');
@@ -36,6 +38,16 @@ Route::delete('/managers/{manager}', [ManagerController::class, 'destroy'])->nam
 Route::get('/employees', [EmployeeController::class, 'index'])->name('employees.index');
 Route::post('/employees', [EmployeeController::class, 'store'])->name('employees.store');
 Route::delete('/employees/{employee}', [EmployeeController::class, 'destroy'])->name('employees.destroy');
+
+Route::get('/locations', [LocationController::class, 'index'])->name('locations.index');
+Route::post('/locations', [LocationController::class, 'store'])->name('locations.store');
+Route::post('/locations/import', [LocationController::class, 'import'])->name('locations.import');
+Route::delete('/locations/{location}', [LocationController::class, 'destroy'])->name('locations.destroy');
+
+Route::get('/departments', [DepartmentController::class, 'index'])->name('departments.index');
+Route::post('/departments', [DepartmentController::class, 'store'])->name('departments.store');
+Route::post('/departments/import', [DepartmentController::class, 'import'])->name('departments.import');
+Route::delete('/departments/{department}', [DepartmentController::class, 'destroy'])->name('departments.destroy');
 
 Route::get('/suppliers', [SupplierController::class, 'index'])->name('suppliers.index');
 Route::post('/suppliers', [SupplierController::class, 'store'])->name('suppliers.store');
