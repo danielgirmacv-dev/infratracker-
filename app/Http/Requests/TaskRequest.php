@@ -40,8 +40,11 @@ class TaskRequest extends FormRequest
         $employeeNames = Schema::hasTable('employees') ? Employee::assigneeOptions() : ['FEVEN'];
         $managerNames = Schema::hasTable('managers') ? Manager::assigneeOptions() : [];
 
+        // Coordinator actors who can also receive tasks from the Director
+        $coordinatorNames = ['Biruk', 'Feven'];
+
         $assignees = array_values(array_filter(
-            array_merge(['Infra Director'], $managerNames, $employeeNames),
+            array_merge(['Infra Director'], $coordinatorNames, $managerNames, $employeeNames),
             fn (string $name) => $name !== $this->taskGiverName()
         ));
 

@@ -261,27 +261,201 @@
         </div>
 
         <div>
-            <label for="task_given_to" class="form-label">Task Given To <span class="text-red-600 dark:text-red-400">*</span></label>
+            <label for="task_given_to_search" class="form-label">Task Given To <span class="text-red-600 dark:text-red-400">*</span></label>
             @php
                 $taskGiver = $t ? $t->task_given_by : ($activeActor ?? '');
+                $assigneeOptions = [];
+
+                // Coordinators (Director only)
+                if (($activeRole ?? '') === 'Infra Director') {
+                    foreach ([['name' => 'Biruk', 'role' => 'Coordinator'], ['name' => 'Feven', 'role' => 'Coordinator Assistance']] as $coord) {
+                        if ($coord['name'] !== $taskGiver) {
+                            $assigneeOptions[] = ['value' => $coord['name'], 'label' => $coord['name'] . ' (' . $coord['role'] . ')', 'group' => 'Coordinators'];
+                        }
+                    }
+                }
+
+                // Project Managers (Director & PM)
+                if (in_array($activeRole ?? '', ['Infra Director', 'Project Manager'])) {
+                    foreach ($managers ?? [] as $manager) {
+                        if ($manager->name !== $taskGiver) {
+                            $assigneeOptions[] = ['value' => $manager->name, 'label' => $manager->name, 'group' => 'Project Managers'];
+                        }
+                    }
+                }
+
+                // Employees (everyone)
+                foreach ($employees ?? [] as $employee) {
+                    if ($employee->name !== $taskGiver) {
+                        $assigneeOptions[] = ['value' => $employee->name, 'label' => $employee->name, 'group' => 'Employees'];
+                    }
+                }
+
+                $currentAssignee = old('task_given_to', $t?->task_given_to ?? '');
+                $currentLabel = '';
+                foreach ($assigneeOptions as $opt) {
+                    if ($opt['value'] === $currentAssignee) { $currentLabel = $opt['label']; break; }
+                }
             @endphp
-            <select id="task_given_to" name="task_given_to" class="form-input @error('task_given_to') error @enderror" {{ ($activeRole ?? '') === 'Employee' ? 'disabled' : '' }}>
-                <option value="">Select assignee…</option>
-                @if(in_array($activeRole ?? '', ['Infra Director', 'Project Manager']))
-                    @foreach($managers ?? [] as $manager)
-                        @if($manager->name !== $taskGiver)
-                        <option value="{{ $manager->name }}" @selected(old('task_given_to', $t?->task_given_to) === $manager->name || old('task_given_to', $t?->task_given_to) === 'Project Manager' && $loop->first)>{{ $manager->name }}</option>
-                        @endif
-                    @endforeach
-                @endif
-                @foreach($employees ?? [] as $employee)
-                    @if($employee->name !== $taskGiver)
-                    <option value="{{ $employee->name }}" @selected(old('task_given_to', $t?->task_given_to) === $employee->name || old('task_given_to', $t?->task_given_to) === 'Employee' && $employee->name === 'FEVEN')>{{ $employee->name }}</option>
-                    @endif
-                @endforeach
-            </select>
+
             @if(($activeRole ?? '') === 'Employee')
+                {{-- Employees can't change assignee --}}
+                <input type="text" readonly disabled class="form-input cursor-not-allowed opacity-70 bg-slate-100 dark:bg-slate-800" value="{{ $activeActor }}">
                 <input type="hidden" name="task_given_to" value="{{ $activeActor }}">
+            @else
+                <div x-data="{
+                    open: false,
+                    search: '{{ addslashes($currentLabel) }}',
+                    selected: '{{ addslashes($currentAssignee) }}',
+                    highlightIdx: -1,
+                    options: {{ Js::from($assigneeOptions) }},
+                    get groups() {
+                        const q = this.search.toLowerCase().trim();
+                        const filtered = this.options.filter(o =>
+                            !q || o.value === this.selected || o.label.toLowerCase().includes(q) || o.value.toLowerCase().includes(q)
+                        );
+                        const g = {};
+                        filtered.forEach(o => { (g[o.group] = g[o.group] || []).push(o); });
+                        return g;
+                    },
+                    get flatFiltered() {
+                        const out = [];
+                        for (const [, items] of Object.entries(this.groups)) { out.push(...items); }
+                        return out;
+                    },
+                    pick(opt) {
+                        this.selected = opt.value;
+                        this.search = opt.label;
+                        this.open = false;
+                        this.highlightIdx = -1;
+                    },
+                    clear() {
+                        this.selected = '';
+                        this.search = '';
+                        this.$nextTick(() => this.$refs.searchInput.focus());
+                    },
+                    onArrowDown() {
+                        if (!this.open) { this.open = true; return; }
+                        this.highlightIdx = Math.min(this.highlightIdx + 1, this.flatFiltered.length - 1);
+                        this.scrollToHighlighted();
+                    },
+                    onArrowUp() {
+                        this.highlightIdx = Math.max(this.highlightIdx - 1, 0);
+                        this.scrollToHighlighted();
+                    },
+                    onEnter() {
+                        if (this.highlightIdx >= 0 && this.highlightIdx < this.flatFiltered.length) {
+                            this.pick(this.flatFiltered[this.highlightIdx]);
+                        }
+                    },
+                    scrollToHighlighted() {
+                        this.$nextTick(() => {
+                            const el = this.$refs.listbox?.querySelector('[data-highlighted=true]');
+                            if (el) el.scrollIntoView({ block: 'nearest' });
+                        });
+                    }
+                }"
+                @click.outside="open = false"
+                class="relative">
+                    {{-- Hidden real input --}}
+                    <input type="hidden" name="task_given_to" :value="selected">
+
+                    {{-- Search text input --}}
+                    <div class="relative">
+                        <input
+                            x-ref="searchInput"
+                            id="task_given_to_search"
+                            type="text"
+                            autocomplete="off"
+                            placeholder="Search or select assignee…"
+                            class="form-input pr-16 @error('task_given_to') error @enderror"
+                            x-model="search"
+                            @focus="open = true; highlightIdx = -1; if (selected) search = ''"
+                            @input="open = true; highlightIdx = 0; selected = ''"
+                            @keydown.arrow-down.prevent="onArrowDown()"
+                            @keydown.arrow-up.prevent="onArrowUp()"
+                            @keydown.enter.prevent="onEnter()"
+                            @keydown.escape="open = false; if (selected) { search = options.find(o => o.value === selected)?.label || selected; }"
+                            @blur="if (!selected && search) { const match = flatFiltered[0]; if (match) pick(match); else search = ''; }"
+                        >
+                        {{-- Clear button --}}
+                        <button
+                            type="button"
+                            x-show="selected"
+                            @click.stop="clear()"
+                            class="absolute inset-y-0 right-8 flex items-center px-1 text-slate-400 hover:text-red-500 transition-colors"
+                            title="Clear selection"
+                        >
+                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                        {{-- Dropdown toggle --}}
+                        <button
+                            type="button"
+                            @click.stop="open = !open; if (open) $refs.searchInput.focus()"
+                            class="absolute inset-y-0 right-0 flex items-center px-2.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
+                        >
+                            <svg class="h-4 w-4 transition-transform" :class="open && 'rotate-180'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"/></svg>
+                        </button>
+                    </div>
+
+                    {{-- Dropdown list --}}
+                    <div
+                        x-show="open"
+                        x-transition:enter="transition ease-out duration-150"
+                        x-transition:enter-start="opacity-0 -translate-y-1"
+                        x-transition:enter-end="opacity-100 translate-y-0"
+                        x-transition:leave="transition ease-in duration-100"
+                        x-transition:leave-start="opacity-100 translate-y-0"
+                        x-transition:leave-end="opacity-0 -translate-y-1"
+                        x-ref="listbox"
+                        class="absolute z-50 mt-1.5 w-full max-h-56 overflow-auto rounded-xl border border-indigo-500/15 bg-white shadow-xl shadow-slate-900/10 ring-1 ring-black/5 dark:bg-slate-800 dark:border-slate-600/30 dark:shadow-black/30 dark:ring-white/5"
+                        style="display: none;"
+                    >
+                        <template x-if="flatFiltered.length === 0">
+                            <div class="px-4 py-3 text-sm text-slate-400 dark:text-slate-500 text-center italic">
+                                No matching actors found
+                            </div>
+                        </template>
+
+                        <template x-for="(groupName, gi) in Object.keys(groups)" :key="groupName">
+                            <div>
+                                {{-- Group header --}}
+                                <div class="sticky top-0 z-10 px-3 py-1.5 text-[10px] font-bold tracking-wider uppercase text-indigo-500/70 dark:text-indigo-400/60 bg-slate-50/95 dark:bg-slate-800/95 backdrop-blur-sm border-b border-slate-100 dark:border-slate-700/50"
+                                     :class="gi > 0 && 'border-t'"
+                                     x-text="groupName"></div>
+
+                                {{-- Group items --}}
+                                <template x-for="(opt, oi) in groups[groupName]" :key="opt.value">
+                                    <div
+                                        @click="pick(opt)"
+                                        @mouseenter="highlightIdx = flatFiltered.indexOf(opt)"
+                                        :data-highlighted="highlightIdx === flatFiltered.indexOf(opt)"
+                                        class="flex items-center gap-2.5 px-3 py-2 text-sm cursor-pointer transition-colors"
+                                        :class="{
+                                            'bg-indigo-500 text-white': highlightIdx === flatFiltered.indexOf(opt),
+                                            'text-slate-700 dark:text-slate-200 hover:bg-indigo-50 dark:hover:bg-indigo-500/10': highlightIdx !== flatFiltered.indexOf(opt),
+                                        }"
+                                    >
+                                        {{-- Avatar circle --}}
+                                        <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[10px] font-bold"
+                                              :class="{
+                                                  'bg-white/20 text-white': highlightIdx === flatFiltered.indexOf(opt),
+                                                  'bg-indigo-500/10 text-indigo-600 dark:bg-indigo-400/15 dark:text-indigo-400': highlightIdx !== flatFiltered.indexOf(opt) && opt.group === 'Coordinators',
+                                                  'bg-emerald-500/10 text-emerald-600 dark:bg-emerald-400/15 dark:text-emerald-400': highlightIdx !== flatFiltered.indexOf(opt) && opt.group === 'Project Managers',
+                                                  'bg-amber-500/10 text-amber-600 dark:bg-amber-400/15 dark:text-amber-400': highlightIdx !== flatFiltered.indexOf(opt) && opt.group === 'Employees',
+                                              }"
+                                              x-text="opt.value.substring(0, 2).toUpperCase()"></span>
+
+                                        <span class="truncate" x-text="opt.label"></span>
+
+                                        {{-- Checkmark when selected --}}
+                                        <svg x-show="selected === opt.value" class="ml-auto h-4 w-4 shrink-0" :class="highlightIdx === flatFiltered.indexOf(opt) ? 'text-white' : 'text-indigo-500'" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </template>
+                            </div>
+                        </template>
+                    </div>
+                </div>
             @endif
             @error('task_given_to')<p class="mt-1 text-xs text-red-600 dark:text-red-400">{{ $message }}</p>@enderror
         </div>
