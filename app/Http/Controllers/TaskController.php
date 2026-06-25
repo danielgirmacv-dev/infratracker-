@@ -298,10 +298,10 @@ class TaskController extends Controller
         // Auto-provision main actors if they don't exist
         if (!$user) {
             $checkVal = $email ?: strtoupper($loginInput);
-            if ($checkVal === 'nebiyeluild@eeigconstruction.com' || $checkVal === 'NEBIYELUIL') {
-                $email = 'nebiyeluild@eeigconstruction.com';
+            if ($checkVal === 'frezerb@eeigconstruction.com' || $checkVal === 'FREZER') {
+                $email = 'FrezerB@eeigconstruction.com';
                 $user = \App\Models\User::create([
-                    'name' => 'Nebiyeluil',
+                    'name' => 'Frezer',
                     'email' => $email,
                     'password' => 'director123',
                     'must_change_password' => false,
@@ -333,8 +333,8 @@ class TaskController extends Controller
             return back()->withErrors(['password' => 'Invalid credentials. Please try again.'])->withInput($request->except('password'));
         }
 
-        if ($email === 'nebiyeluild@eeigconstruction.com') {
-            $actor = 'Nebiyeluil';
+        if (strtolower($email) === 'frezerb@eeigconstruction.com') {
+            $actor = 'Frezer';
             $role = 'Infra Director';
         } elseif ($email === 'biruky@eeigconstruction.com') {
             $actor = 'Biruk';
